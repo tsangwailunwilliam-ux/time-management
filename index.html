@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四象限管理系統 (工作/私人分流版)</title>
+    <style>
+        /* * =========================================
+         * 1. 核心樣式變數
+         * =========================================
+         */
+        :root {
+            --color-q1-bg: #ffe2e2; --color-q1-border: #ff6b6b;
+            --color-q2-bg: #e2f0ff; --color-q2-border: #4dabf7;
+            --color-q3-bg: #fff9db; --color-q3-border: #fcc419;
+            --color-q4-bg: #f8f0fc; --color-q4-border: #ced4da;
+            --color-done-bg: #e9ecef; --color-done-border: #dee2e6;
+            --text-done: #adb5bd;
+            --text-dark: #343a40; --text-muted: #868e96;
+            --radius: 12px; 
+            --primary-color: #339af0; 
+            --personal-color: #20c997; /* 私人模式的主色調 (青綠色) */
+            --danger-color: #ff6b6b;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa; color: var(--text-dark);
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 { margin-bottom: 20px; font-weight: 300; color: #495057; }
+
+        /* * =========================================
+         * 2. 視圖切換 Tabs (New!)
+         * =========================================
+         */
+        .view-tabs {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            background: #e9ecef; padding: 5px; border-radius: 30px;
+        }
+
+        .tab-btn {
+            border: none; background: transparent; padding: 10px 25px;
+            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 500;
+            color: #868e96; transition: all 0.3s;
+        }
+
+        /* 工作模式激活 */
+        .tab-btn.active[data-type="work"] {
+            background-color: white; color: var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 私人模式激活 */
+        .tab-btn.active[data-type="personal"] {
+            background-color: white; color: var(--personal-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* * =========================================
+         * 3. 輸入區塊 (Modified)
+         * =========================================
+         */
+        .input-group {
+            background: white; padding: 20px; border-radius: var(--radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
+            margin-bottom: 30px; width: 100%; max-width: 850px; justify-content: center;
+            border-top: 4px solid var(--primary-color); /* 預設藍色頂條 */
+            transition: border-color 0.3s;
+        }
+
+        /* 當切換到私人模式時，輸入框頂條變色 */
+        .input-group.personal-mode { border-top-color: var(--personal-color); }
+
+        input[type="text"] { padding: 10px 15px; border: 1px solid #dee2e6; border-radius: 6px; flex-grow: 1; font-size: 16px; min-width: 200px; }
+        
+        .options-wrapper { display: flex; gap: 15px; align-items: center; }
+        
+        /* Checkbox & Radio 樣式 */
+        .checkbox-wrapper, .radio-wrapper { display: flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; font-size: 15px;}
+        
+        /* 分隔線 */
+        .divider { width: 1px; height: 24px; background: #dee2e6; margin: 0 5px; }
+
+        button.primary-btn {
+            background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; 
+            cursor: pointer; font-size: 16px; transition: background 0.2s;
+        }
+        button.primary-btn:hover { background-color: #228be6; }
+
+        /* 私人模式下的按鈕變色 */
+        .input-group.personal-mode button.primary-btn { background-color: var(--personal-color); }
+        .input-group.personal-mode button.primary-btn:hover { background-color: #12b886; }
+
+        /* * =========================================
+         * 4. 矩陣與卡片 (維持一致)
+         * =========================================
+         */
+        .matrix-container { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 20px; width: 100%; max-width: 1000px; height: 70vh; }
+        @media (max-width: 768px) { .matrix-container { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; } }
+
+        .quadrant {
+            background-color: white; border-radius: var(--radius); padding: 15px;
+            display: flex; flex-direction: column; border-top: 5px solid transparent;
+            min-height: 200px; transition: transform 0.2s; overflow-y: auto;
+        }
+        #q1 { background-color: var(--color-q1-bg); border-color: var(--color-q1-border); }
+        #q2 { background-color: var(--color-q2-bg); border-color: var(--color-q2-border); }
+        #q3 { background-color: var(--color-q3-bg); border-color: var(--color-q3-border); }
+        #q4 { background-color: var(--color-q4-bg); border-color: var(--color-q4-border); }
+        .quadrant.drag-over { transform: scale(1.02); filter: brightness(0.95); }
+        .quadrant h3 { margin: 0 0 15px 0; font-size: 1.1rem; text-align: center; opacity: 0.8; pointer-events: none; }
+
+        .task-card {
+            background: white; padding: 12px; margin-bottom: 10px; border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; position: relative;
+            transition: all 0.3s ease; border-left: 4px solid transparent;
+        }
+        .task-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.15); transform: translateY(-1px); }
+        .task-card.completed { background-color: var(--color-done-bg); border: 1px solid var(--color-done-border); opacity: 0.7; box-shadow: none; transform: none; }
+        .task-card.completed .task-title { text-decoration: line-through; color: var(--text-done); }
+        
+        .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; gap: 10px; }
+        .task-title { font-weight: 500; font-size: 16px; word-break: break-all; flex-grow: 1; }
+        .task-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        input.task-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #20c997; }
+        .delete-btn { background: none; border: none; color: #adb5bd; cursor: pointer; font-size: 18px; line-height: 1; padding: 0; }
+        .delete-btn:hover { color: var(--danger-color); }
+        
+        .task-meta { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px; font-size: 12px; color: var(--text-muted); }
+        .icon-has-details { opacity: 0; color: var(--primary-color); display: flex; align-items: center; gap: 4px; font-weight: 500;}
+        .task-card.has-content .icon-has-details { opacity: 1; }
+
+        /* * =========================================
+         * 5. Modal 與其他組件
+         * =========================================
+         */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; padding: 0; width: 90%; max-width: 550px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease; display: flex; flex-direction: column; max-height: 85vh; }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; background: #fafafa; border-radius: 12px 12px 0 0; }
+        .modal-header h2 { margin: 0; font-size: 1.3rem; color: #333; }
+        .modal-info { font-size: 13px; color: #888; margin-top: 5px; }
+        .logs-container { padding: 20px 25px; overflow-y: auto; flex-grow: 1; background: white; min-height: 150px; }
+        .empty-state { text-align: center; color: #adb5bd; margin-top: 30px; font-size: 14px; font-style: italic; }
+        .log-item { display: flex; gap: 10px; margin-bottom: 15px; }
+        .log-content-box { background: #f1f3f5; border-radius: 8px; padding: 10px 15px; position: relative; flex-grow: 1; }
+        .log-text { font-size: 15px; line-height: 1.5; color: #333; white-space: pre-wrap; }
+        .log-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 5px; }
+        .log-time { font-size: 12px; color: #868e96; font-weight: 500; }
+        .delete-log-btn { color: #adb5bd; cursor: pointer; font-size: 12px; border: none; background: none; }
+        .delete-log-btn:hover { color: var(--danger-color); text-decoration: underline; }
+        .modal-footer { padding: 15px 25px; border-top: 1px solid #eee; background: white; border-radius: 0 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+        .new-log-input-wrapper { display: flex; gap: 10px; }
+        input.detail-input { flex-grow: 1; padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 15px; }
+        input.detail-input:focus { outline: 2px solid var(--primary-color); border-color: transparent; }
+        .save-btn-wrapper { display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px; }
+        button.add-log-btn { background: var(--primary-color); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        button.close-btn { background: #e9ecef; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; color: #495057; }
+        
+        .toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px;
+            font-size: 14px; opacity: 0; transition: opacity 0.5s; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>我的時間管理矩陣</h1>
+
+    <div class="view-tabs">
+        <button class="tab-btn active" data-type="work" onclick="switchView('work')">💼 工作</button>
+        <button class="tab-btn" data-type="personal" onclick="switchView('personal')">🏠 私人</button>
+    </div>
+
+    <div class="input-group" id="input-group-container">
+        <input type="text" id="task-input" placeholder="輸入待辦事項..." />
+        
+        <div class="options-wrapper">
+            <label class="checkbox-wrapper"><input type="checkbox" id="is-important"> 重要</label>
+            <label class="checkbox-wrapper"><input type="checkbox" id="is-urgent"> 緊急</label>
+            
+            <div class="divider"></div>
+            
+            <label class="radio-wrapper"><input type="radio" name="category" value="work" checked> 公事</label>
+            <label class="radio-wrapper"><input type="radio" name="category" value="personal"> 私事</label>
+        </div>
+
+        <button id="add-btn" class="primary-btn">新增事項</button>
+    </div>
+
+    <div class="matrix-container">
+        <div class="quadrant" id="q1" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"><h3>🔥 重要且緊急</h3></div>
+        <div class="quadrant" id="q2" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"><h3>📅 重要但不緊急</h3></div>
+        <div class="quadrant" id="q3" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"><h3>⚡ 緊急但不重要</h3></div>
+        <div class="quadrant" id="q4" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"><h3>☕ 不重要也不緊急</h3></div>
+    </div>
+
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">標題</h2>
+                <div class="modal-info" id="modal-created-time"></div>
+            </div>
+            <div class="logs-container" id="logs-list"></div>
+            <div class="modal-footer">
+                <div class="new-log-input-wrapper">
+                    <input type="text" id="new-log-input" class="detail-input" placeholder="輸入新的進度內容..." />
+                    <button class="add-log-btn" onclick="addNewLog()">新增紀錄</button>
+                </div>
+                <div class="save-btn-wrapper">
+                    <button class="close-btn" onclick="saveAndCloseModal()">關閉並儲存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="save-toast" class="toast">已自動儲存</div>
+
+    <script>
+        // === 全域變數 ===
+        let allTasks = []; 
+        let currentView = 'work'; // 'work' or 'personal'
+        const STORAGE_KEY = 'eisenhower_matrix_data_v2_split'; // 升級 storage key 避免衝突
+
+        // DOM Elements
+        const taskInput = document.getElementById('task-input');
+        const isImportantCheckbox = document.getElementById('is-important');
+        const isUrgentCheckbox = document.getElementById('is-urgent');
+        const modal = document.getElementById('detail-modal');
+        const logsListContainer = document.getElementById('logs-list');
+        const newLogInput = document.getElementById('new-log-input');
+        const inputGroupContainer = document.getElementById('input-group-container');
+        
+        let currentEditingTaskId = null;
+
+        // === 初始化 ===
+        window.addEventListener('DOMContentLoaded', () => {
+            loadTasksFromStorage();
+            // 根據預設 currentView 更新 UI
+            updateViewUI();
+            renderAllTasks();
+        });
+
+        // === 1. 視圖切換邏輯 (Core Logic) ===
+        window.switchView = function(viewType) {
+            currentView = viewType;
+            updateViewUI();
+            renderAllTasks(); // 重新渲染，只顯示該類別
+        }
+
+        function updateViewUI() {
+            // 1. 更新 Tabs 樣式
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === currentView);
+            });
+
+            // 2. 更新輸入區的顏色與預設 Radio
+            if (currentView === 'work') {
+                inputGroupContainer.classList.remove('personal-mode');
+                document.querySelector('input[name="category"][value="work"]').checked = true;
+            } else {
+                inputGroupContainer.classList.add('personal-mode');
+                document.querySelector('input[name="category"][value="personal"]').checked = true;
+            }
+        }
+
+        // === 2. 新增任務 (含分類) ===
+        document.getElementById('add-btn').addEventListener('click', () => {
+            const text = taskInput.value.trim();
+            if (!text) { alert("請輸入事項內容！"); return; }
+
+            const important = isImportantCheckbox.checked;
+            const urgent = isUrgentCheckbox.checked;
+            // 取得當前選中的分類
+            const category = document.querySelector('input[name="category"]:checked').value;
+            
+            let targetId = 'q4';
+            if (important && urgent) targetId = 'q1';
+            else if (important && !urgent) targetId = 'q2';
+            else if (!important && urgent) targetId = 'q3';
+
+            const newTask = {
+                id: 'task-' + Date.now(),
+                text: text,
+                quadrant: targetId,
+                category: category, // 新增分類屬性
+                completed: false,
+                createdTime: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                logs: []
+            };
+
+            allTasks.push(newTask);
+            
+            // 只有當「新增的類別」等於「當前視圖」時，才立即渲染在畫面上
+            // 否則雖然存進去了，但在當前頁面看不到 (符合邏輯)
+            if (category === currentView) {
+                renderTaskElement(newTask);
+            } else {
+                alert(`已新增至【${category === 'work' ? '工作' : '私人'}】列表`);
+            }
+            
+            saveToStorage();
+
+            taskInput.value = ''; taskInput.focus();
+            isImportantCheckbox.checked = false; isUrgentCheckbox.checked = false;
+        });
+        
+        taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('add-btn').click(); });
+
+        // === 3. 渲染邏輯 (Filtering) ===
+        function renderAllTasks() {
+            // 清空所有象限
+            ['q1', 'q2', 'q3', 'q4'].forEach(id => {
+                const container = document.getElementById(id);
+                // 保留 h3，移除其他 card
+                const title = container.querySelector('h3');
+                container.innerHTML = ''; 
+                container.appendChild(title);
+            });
+
+            // 過濾並渲染
+            const filteredTasks = allTasks.filter(t => t.category === currentView);
+            filteredTasks.forEach(task => renderTaskElement(task));
+        }
+
+        function renderTaskElement(task) {
+            const card = document.createElement('div');
+            card.className = `task-card ${task.completed ? 'completed' : ''} ${task.logs.length > 0 ? 'has-content' : ''}`;
+            card.draggable = true;
+            card.id = task.id;
+
+            card.innerHTML = `
+                <div class="task-header">
+                    <span class="task-title">${task.text}</span>
+                    <div class="task-actions">
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTaskStatus(event, '${task.id}')">
+                        <button class="delete-btn" onclick="removeTask(event, '${task.id}')">✕</button>
+                    </div>
+                </div>
+                <div class="task-meta">
+                    <span class="icon-has-details">📋 <span class="log-count">${task.logs.length}</span> 筆紀錄</span>
+                    <span class="task-timestamp">${task.createdTime}</span>
+                </div>
+            `;
+
+            card.addEventListener('dragstart', drag);
+            card.addEventListener('click', () => openModal(task.id));
+
+            const container = document.getElementById(task.quadrant);
+            if (task.completed) {
+                container.appendChild(card);
+            } else {
+                const title = container.querySelector('h3');
+                if (title && title.nextSibling) container.insertBefore(card, title.nextSibling);
+                else container.appendChild(card);
+            }
+        }
+
+        // === 4. 動作邏輯 (Toggle, Delete, etc.) ===
+        function toggleTaskStatus(event, taskId) {
+            event.stopPropagation();
+            const task = allTasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                saveToStorage();
+                // 只有在當前視圖可見時才重畫，其實能點到代表一定可見，直接重畫整個視圖最安全
+                renderAllTasks(); 
+            }
+        }
+
+        function removeTask(event, taskId) {
+            event.stopPropagation();
+            if(confirm('確定要刪除？')) {
+                allTasks = allTasks.filter(t => t.id !== taskId);
+                saveToStorage();
+                document.getElementById(taskId).remove();
+            }
+        }
+
+        // === 5. Modal & Logs (維持) ===
+        function openModal(taskId) {
+            currentEditingTaskId = taskId;
+            const task = allTasks.find(t => t.id === taskId);
+            if (!task) return;
+            document.getElementById('modal-title').innerText = task.text;
+            document.getElementById('modal-created-time').innerText = "建立於: " + task.createdTime;
+            renderLogs(task.logs);
+            modal.classList.add('active');
+            newLogInput.focus();
+        }
+
+        function renderLogs(logs) {
+            logsListContainer.innerHTML = '';
+            if (logs.length === 0) {
+                logsListContainer.innerHTML = '<div class="empty-state">尚未有進度紀錄</div>';
+                return;
+            }
+            [...logs].reverse().forEach((log, index) => {
+                const logItem = document.createElement('div');
+                logItem.className = 'log-item';
+                logItem.innerHTML = `
+                    <div class="log-content-box">
+                        <div class="log-text">${log.text}</div>
+                        <div class="log-meta">
+                            <span class="log-time">${log.time}</span>
+                            <button class="delete-log-btn" onclick="deleteLog(${logs.indexOf(log)})">刪除</button>
+                        </div>
+                    </div>
+                `;
+                logsListContainer.appendChild(logItem);
+            });
+        }
+
+        function addNewLog() {
+            const text = newLogInput.value.trim();
+            if (!text) return;
+            const task = allTasks.find(t => t.id === currentEditingTaskId);
+            if (task) {
+                task.logs.push({ text: text, time: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) });
+                renderLogs(task.logs);
+                newLogInput.value = '';
+                saveToStorage();
+            }
+        }
+
+        window.deleteLog = function(realIndex) {
+            const task = allTasks.find(t => t.id === currentEditingTaskId);
+            if (task) {
+                task.logs.splice(realIndex, 1);
+                renderLogs(task.logs);
+                saveToStorage();
+            }
+        }
+
+        function saveAndCloseModal() {
+            const task = allTasks.find(t => t.id === currentEditingTaskId);
+            if (task) {
+                const card = document.getElementById(task.id);
+                // 只有卡片在當前畫面才更新 DOM (可能在不同 Tab 編輯，雖不常見)
+                if (card) {
+                    card.querySelector('.log-count').innerText = task.logs.length;
+                    if (task.logs.length > 0) card.classList.add('has-content');
+                    else card.classList.remove('has-content');
+                }
+            }
+            modal.classList.remove('active');
+            currentEditingTaskId = null;
+        }
+        
+        newLogInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewLog(); });
+        modal.addEventListener('click', (e) => { if (e.target === modal) saveAndCloseModal(); });
+
+        // === 6. Drag & Drop ===
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); ev.target.style.opacity = '0.5'; }
+        document.addEventListener("dragend", function(event) { event.target.style.opacity = '1'; });
+        function allowDrop(ev) { ev.preventDefault(); }
+        function dragEnter(ev) { ev.preventDefault(); if (ev.target.classList.contains('quadrant')) ev.target.classList.add('drag-over'); }
+        function dragLeave(ev) { if (ev.target.classList.contains('quadrant')) ev.target.classList.remove('drag-over'); }
+        function drop(ev) {
+            ev.preventDefault();
+            const quadrant = ev.target.closest('.quadrant');
+            if(quadrant) {
+                quadrant.classList.remove('drag-over');
+                const taskId = ev.dataTransfer.getData("text");
+                const card = document.getElementById(taskId);
+                if(card) {
+                    quadrant.appendChild(card);
+                    const task = allTasks.find(t => t.id === taskId);
+                    if (task) { task.quadrant = quadrant.id; saveToStorage(); }
+                }
+            }
+        }
+
+        // === 7. Storage (含舊資料遷移) ===
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks));
+            showToast();
+        }
+
+        function loadTasksFromStorage() {
+            // 1. 嘗試讀取新版 key
+            let data = localStorage.getItem(STORAGE_KEY);
+            
+            // 2. 如果新版沒資料，嘗試讀取舊版 key (Migration)
+            if (!data) {
+                const oldData = localStorage.getItem('eisenhower_matrix_data_v1');
+                if (oldData) {
+                    data = oldData;
+                    // 讀取後可選擇是否刪除舊的，這裡保留比較保險
+                }
+            }
+
+            if (data) {
+                allTasks = JSON.parse(data);
+                
+                // === 資料遷移邏輯 (Data Migration) ===
+                // 檢查是否每個任務都有 'category'，如果沒有（舊資料），預設設為 'work'
+                allTasks.forEach(task => {
+                    if (!task.category) {
+                        task.category = 'work';
+                    }
+                });
+                
+                // 存回新結構，完成遷移
+                saveToStorage();
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('save-toast');
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 1500);
+        }
+    </script>
+</body>
+</html>
