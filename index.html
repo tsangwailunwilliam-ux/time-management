@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四象限管理系統 (燈箱預覽版)</title>
+    <title>四象限管理系統 (V9.0 子任務版)</title>
     <style>
         /* * =========================================
          * 1. 核心樣式變數
@@ -153,12 +153,31 @@
         }
         .upload-btn-label:hover { background: #dee2e6; }
 
-        /* Logs & Footer */
+        /* * =========================================
+         * 5. Logs 樣式 (更新：支援 Checkbox)
+         * =========================================
+         */
         .logs-container { min-height: 100px; }
         .empty-state { text-align: center; color: #adb5bd; margin-top: 20px; font-size: 14px; font-style: italic; }
-        .log-item { display: flex; gap: 10px; margin-bottom: 15px; }
-        .log-content-box { background: #f1f3f5; border-radius: 8px; padding: 10px 15px; position: relative; flex-grow: 1; }
-        .log-text { font-size: 15px; line-height: 1.5; color: #333; white-space: pre-wrap; }
+        
+        .log-item { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; }
+        
+        /* New: 日誌的 Checkbox */
+        .log-checkbox {
+            margin-top: 12px; width: 16px; height: 16px; cursor: pointer; 
+            accent-color: var(--primary-color); flex-shrink: 0;
+        }
+        
+        .log-content-box { 
+            background: #f1f3f5; border-radius: 8px; padding: 10px 15px; 
+            position: relative; flex-grow: 1; transition: all 0.2s;
+        }
+        
+        /* 完成後的樣式 */
+        .log-content-box.completed { background: #f8f9fa; opacity: 0.8; }
+        .log-text { font-size: 15px; line-height: 1.5; color: #333; white-space: pre-wrap; transition: color 0.2s;}
+        .log-text.completed { text-decoration: line-through; color: #adb5bd; }
+        
         .log-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 5px; }
         .log-time { font-size: 12px; color: #868e96; font-weight: 500; }
         .delete-log-btn { color: #adb5bd; cursor: pointer; font-size: 12px; border: none; background: none; }
@@ -179,24 +198,22 @@
         }
 
         /* * =========================================
-         * 5. Lightbox (圖片預覽) - NEW Feature
+         * 6. Lightbox
          * =========================================
          */
         .lightbox-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); z-index: 3000; /* 比 Modal 更高 */
+            background: rgba(0, 0, 0, 0.85); z-index: 3000; 
             justify-content: center; align-items: center;
             opacity: 0; transition: opacity 0.3s ease;
         }
         .lightbox-overlay.active { display: flex; opacity: 1; }
-        
         .lightbox-img {
             max-width: 90%; max-height: 90%; 
             border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             transform: scale(0.9); transition: transform 0.3s ease;
         }
         .lightbox-overlay.active .lightbox-img { transform: scale(1); }
-
         .lightbox-close {
             position: absolute; top: 20px; right: 20px;
             color: white; font-size: 30px; cursor: pointer; opacity: 0.8;
@@ -249,7 +266,7 @@
                     <div class="image-gallery" id="image-gallery"></div>
                 </div>
                 <div>
-                    <div class="section-title">📝 進度日誌</div>
+                    <div class="section-title">📝 進度日誌 (子任務)</div>
                     <div class="logs-container" id="logs-list"></div>
                 </div>
             </div>
@@ -428,45 +445,29 @@
             modal.classList.add('active');
         }
 
-        // === 圖片處理邏輯 ===
+        // === 圖片處理 ===
         function handleImageUpload(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
-                if (file.size > 10 * 1024 * 1024) {
-                    alert("圖片太大囉，請選擇小於 10MB 的圖片");
-                    return;
-                }
+                if (file.size > 10 * 1024 * 1024) { alert("圖片太大囉，請選擇小於 10MB 的圖片"); return; }
                 compressImage(file, (base64String) => {
                     const task = allTasks.find(t => t.id === currentEditingTaskId);
-                    if (task) {
-                        task.images.push(base64String);
-                        renderImages(task.images); 
-                        saveToStorage();
-                    }
+                    if (task) { task.images.push(base64String); renderImages(task.images); saveToStorage(); }
                 });
                 input.value = '';
             }
         }
 
         function compressImage(file, callback) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
+            const reader = new FileReader(); reader.readAsDataURL(file);
             reader.onload = function(event) {
-                const img = new Image();
-                img.src = event.target.result;
+                const img = new Image(); img.src = event.target.result;
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 800;
-                    const MAX_HEIGHT = 800;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                    } else {
-                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                    }
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 800; const MAX_HEIGHT = 800;
+                    let width = img.width; let height = img.height;
+                    if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
+                    else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
                     canvas.width = width; canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
                     callback(canvas.toDataURL('image/jpeg', 0.7));
@@ -474,63 +475,51 @@
             }
         }
 
-        // === Lightbox 預覽功能 (New!) ===
         function renderImages(images) {
             imageGallery.innerHTML = '';
             if (!images || images.length === 0) return;
-
             images.forEach((imgSrc, index) => {
-                const div = document.createElement('div');
-                div.className = 'image-item';
-                // 修改：使用 openLightbox 而不是 window.open
-                div.innerHTML = `
-                    <img src="${imgSrc}" onclick="openLightbox('${imgSrc}')" title="點擊預覽">
-                    <button class="image-delete-btn" onclick="deleteImage(event, ${index})">✕</button>
-                `;
+                const div = document.createElement('div'); div.className = 'image-item';
+                div.innerHTML = `<img src="${imgSrc}" onclick="openLightbox('${imgSrc}')" title="點擊預覽"><button class="image-delete-btn" onclick="deleteImage(event, ${index})">✕</button>`;
                 imageGallery.appendChild(div);
             });
         }
 
-        // 打開燈箱
-        window.openLightbox = function(src) {
-            lightboxImg.src = src;
-            lightboxOverlay.classList.add('active');
-        }
-
-        // 關閉燈箱
-        window.closeLightbox = function() {
-            lightboxOverlay.classList.remove('active');
-            // 清空 src 以節省記憶體，並防止下次打開時閃爍舊圖
-            setTimeout(() => { lightboxImg.src = ''; }, 300); 
-        }
-
+        window.openLightbox = function(src) { lightboxImg.src = src; lightboxOverlay.classList.add('active'); }
+        window.closeLightbox = function() { lightboxOverlay.classList.remove('active'); setTimeout(() => { lightboxImg.src = ''; }, 300); }
         window.deleteImage = function(event, index) {
-            event.stopPropagation(); // 防止點到圖片觸發預覽
+            event.stopPropagation();
             if(!confirm("確定要刪除這張照片嗎？")) return;
             const task = allTasks.find(t => t.id === currentEditingTaskId);
-            if (task) {
-                task.images.splice(index, 1);
-                renderImages(task.images);
-                saveToStorage();
-            }
+            if (task) { task.images.splice(index, 1); renderImages(task.images); saveToStorage(); }
         }
 
-        // === Logs 邏輯 ===
+        // === Logs 邏輯 (更新：Checkbox) ===
         function renderLogs(logs) {
             logsListContainer.innerHTML = '';
             if (!logs || logs.length === 0) {
                 logsListContainer.innerHTML = '<div class="empty-state">尚未有進度紀錄</div>';
                 return;
             }
-            [...logs].reverse().forEach((log, index) => {
+            // 使用 reverse 的副本來顯示，但要小心 index
+            [...logs].reverse().forEach((log) => {
+                // 找出該 log 在原陣列中的真實 index
+                const realIndex = logs.indexOf(log);
+                
                 const logItem = document.createElement('div');
                 logItem.className = 'log-item';
+                
+                // 判斷是否完成，設定樣式
+                const completedClass = log.completed ? 'completed' : '';
+                const checkedAttr = log.completed ? 'checked' : '';
+
                 logItem.innerHTML = `
-                    <div class="log-content-box">
-                        <div class="log-text">${log.text}</div>
+                    <input type="checkbox" class="log-checkbox" ${checkedAttr} onchange="toggleLogStatus(${realIndex})">
+                    <div class="log-content-box ${completedClass}">
+                        <div class="log-text ${completedClass}">${log.text}</div>
                         <div class="log-meta">
                             <span class="log-time">${log.time}</span>
-                            <button class="delete-log-btn" onclick="deleteLog(${logs.indexOf(log)})">刪除</button>
+                            <button class="delete-log-btn" onclick="deleteLog(${realIndex})">刪除</button>
                         </div>
                     </div>
                 `;
@@ -544,9 +533,23 @@
             const task = allTasks.find(t => t.id === currentEditingTaskId);
             if (task) {
                 if(!task.logs) task.logs = [];
-                task.logs.push({ text: text, time: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) });
+                // 新增日誌物件，加入 completed 屬性
+                task.logs.push({ 
+                    text: text, 
+                    time: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                    completed: false 
+                });
                 renderLogs(task.logs);
                 newLogInput.value = '';
+                saveToStorage();
+            }
+        }
+
+        window.toggleLogStatus = function(realIndex) {
+            const task = allTasks.find(t => t.id === currentEditingTaskId);
+            if (task && task.logs[realIndex]) {
+                task.logs[realIndex].completed = !task.logs[realIndex].completed;
+                renderLogs(task.logs); // 重新渲染以更新樣式
                 saveToStorage();
             }
         }
@@ -570,7 +573,7 @@
         newLogInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewLog(); });
         modal.addEventListener('click', (e) => { if (e.target === modal) saveAndCloseModal(); });
 
-        // === Drag & Drop ===
+        // === Drag & Drop & Storage ===
         function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); ev.target.style.opacity = '0.5'; }
         document.addEventListener("dragend", function(event) { event.target.style.opacity = '1'; });
         function allowDrop(ev) { ev.preventDefault(); }
@@ -591,29 +594,24 @@
             }
         }
 
-        // === Storage & Migration ===
         function saveToStorage() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks));
-                showToast();
-            } catch (e) {
-                if(e.name === 'QuotaExceededError') {
-                    alert("儲存空間已滿！可能是照片太多了，請刪除一些照片後再試。");
-                }
-            }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks)); showToast(); } 
+            catch (e) { if(e.name === 'QuotaExceededError') alert("儲存空間已滿！請刪除一些照片。"); }
         }
 
         function loadTasksFromStorage() {
             let data = localStorage.getItem(STORAGE_KEY);
-            if (!data) {
-                const oldData = localStorage.getItem('eisenhower_matrix_data_v2_split');
-                if (oldData) data = oldData;
-            }
+            if (!data) { const oldData = localStorage.getItem('eisenhower_matrix_data_v2_split'); if (oldData) data = oldData; }
             if (data) {
                 allTasks = JSON.parse(data);
                 allTasks.forEach(task => {
                     if (!task.category) task.category = 'work';
                     if (!task.images) task.images = []; 
+                    if (!task.logs) task.logs = [];
+                    // 遷移舊日誌資料：確保都有 completed 屬性
+                    task.logs.forEach(log => {
+                        if (log.completed === undefined) log.completed = false;
+                    });
                 });
                 saveToStorage();
             }
