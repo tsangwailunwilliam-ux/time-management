@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四象限管理系統 (工作/私人分流版)</title>
+    <title>四象限管理系統 (圖文整合版)</title>
     <style>
         /* * =========================================
          * 1. 核心樣式變數
@@ -19,7 +19,7 @@
             --text-dark: #343a40; --text-muted: #868e96;
             --radius: 12px; 
             --primary-color: #339af0; 
-            --personal-color: #20c997; /* 私人模式的主色調 (青綠色) */
+            --personal-color: #20c997;
             --danger-color: #ff6b6b;
         }
 
@@ -34,55 +34,32 @@
         h1 { margin-bottom: 20px; font-weight: 300; color: #495057; }
 
         /* * =========================================
-         * 2. 視圖切換 Tabs (New!)
+         * 2. 視圖切換 & 輸入區
          * =========================================
          */
         .view-tabs {
             display: flex; gap: 10px; margin-bottom: 20px;
             background: #e9ecef; padding: 5px; border-radius: 30px;
         }
-
         .tab-btn {
             border: none; background: transparent; padding: 10px 25px;
             border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 500;
             color: #868e96; transition: all 0.3s;
         }
+        .tab-btn.active[data-type="work"] { background-color: white; color: var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .tab-btn.active[data-type="personal"] { background-color: white; color: var(--personal-color); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        /* 工作模式激活 */
-        .tab-btn.active[data-type="work"] {
-            background-color: white; color: var(--primary-color);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        /* 私人模式激活 */
-        .tab-btn.active[data-type="personal"] {
-            background-color: white; color: var(--personal-color);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        /* * =========================================
-         * 3. 輸入區塊 (Modified)
-         * =========================================
-         */
         .input-group {
             background: white; padding: 20px; border-radius: var(--radius);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
             margin-bottom: 30px; width: 100%; max-width: 850px; justify-content: center;
-            border-top: 4px solid var(--primary-color); /* 預設藍色頂條 */
-            transition: border-color 0.3s;
+            border-top: 4px solid var(--primary-color); transition: border-color 0.3s;
         }
-
-        /* 當切換到私人模式時，輸入框頂條變色 */
         .input-group.personal-mode { border-top-color: var(--personal-color); }
 
         input[type="text"] { padding: 10px 15px; border: 1px solid #dee2e6; border-radius: 6px; flex-grow: 1; font-size: 16px; min-width: 200px; }
-        
         .options-wrapper { display: flex; gap: 15px; align-items: center; }
-        
-        /* Checkbox & Radio 樣式 */
         .checkbox-wrapper, .radio-wrapper { display: flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; font-size: 15px;}
-        
-        /* 分隔線 */
         .divider { width: 1px; height: 24px; background: #dee2e6; margin: 0 5px; }
 
         button.primary-btn {
@@ -90,13 +67,11 @@
             cursor: pointer; font-size: 16px; transition: background 0.2s;
         }
         button.primary-btn:hover { background-color: #228be6; }
-
-        /* 私人模式下的按鈕變色 */
         .input-group.personal-mode button.primary-btn { background-color: var(--personal-color); }
         .input-group.personal-mode button.primary-btn:hover { background-color: #12b886; }
 
         /* * =========================================
-         * 4. 矩陣與卡片 (維持一致)
+         * 3. 矩陣與卡片
          * =========================================
          */
         .matrix-container { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 20px; width: 100%; max-width: 1000px; height: 70vh; }
@@ -131,22 +106,64 @@
         .delete-btn:hover { color: var(--danger-color); }
         
         .task-meta { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px; font-size: 12px; color: var(--text-muted); }
-        .icon-has-details { opacity: 0; color: var(--primary-color); display: flex; align-items: center; gap: 4px; font-weight: 500;}
-        .task-card.has-content .icon-has-details { opacity: 1; }
-
+        .icon-indicator { opacity: 0; color: var(--text-muted); display: flex; align-items: center; gap: 6px; font-weight: 500;}
+        .task-card.has-content .icon-indicator { opacity: 1; }
+        
         /* * =========================================
-         * 5. Modal 與其他組件
+         * 4. Modal 與 圖片樣式 (New!)
          * =========================================
          */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: white; padding: 0; width: 90%; max-width: 550px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease; display: flex; flex-direction: column; max-height: 85vh; }
+        .modal-content { background: white; padding: 0; width: 90%; max-width: 600px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease; display: flex; flex-direction: column; max-height: 90vh; }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         .modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; background: #fafafa; border-radius: 12px 12px 0 0; }
         .modal-header h2 { margin: 0; font-size: 1.3rem; color: #333; }
         .modal-info { font-size: 13px; color: #888; margin-top: 5px; }
-        .logs-container { padding: 20px 25px; overflow-y: auto; flex-grow: 1; background: white; min-height: 150px; }
-        .empty-state { text-align: center; color: #adb5bd; margin-top: 30px; font-size: 14px; font-style: italic; }
+
+        /* 滾動區域容器 */
+        .modal-scroll-body {
+            flex-grow: 1; overflow-y: auto; padding: 20px 25px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        /* 圖片區域樣式 */
+        .section-title { font-size: 14px; color: #868e96; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+        
+        .image-gallery {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;
+        }
+        
+        .image-item {
+            position: relative; width: 100%; aspect-ratio: 1/1; /* 正方形縮圖 */
+            border-radius: 8px; overflow: hidden; border: 1px solid #dee2e6;
+            cursor: pointer;
+        }
+        
+        .image-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .image-item:hover img { transform: scale(1.1); }
+        
+        .image-delete-btn {
+            position: absolute; top: 4px; right: 4px;
+            background: rgba(0,0,0,0.6); color: white; border: none;
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s;
+        }
+        .image-item:hover .image-delete-btn { opacity: 1; }
+        .image-delete-btn:hover { background: var(--danger-color); }
+
+        .upload-btn-label {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #e9ecef; color: #495057; padding: 5px 12px;
+            border-radius: 20px; font-size: 12px; cursor: pointer; transition: background 0.2s;
+        }
+        .upload-btn-label:hover { background: #dee2e6; }
+
+        /* Log 樣式 */
+        .logs-container { min-height: 100px; }
+        .empty-state { text-align: center; color: #adb5bd; margin-top: 20px; font-size: 14px; font-style: italic; }
         .log-item { display: flex; gap: 10px; margin-bottom: 15px; }
         .log-content-box { background: #f1f3f5; border-radius: 8px; padding: 10px 15px; position: relative; flex-grow: 1; }
         .log-text { font-size: 15px; line-height: 1.5; color: #333; white-space: pre-wrap; }
@@ -154,6 +171,8 @@
         .log-time { font-size: 12px; color: #868e96; font-weight: 500; }
         .delete-log-btn { color: #adb5bd; cursor: pointer; font-size: 12px; border: none; background: none; }
         .delete-log-btn:hover { color: var(--danger-color); text-decoration: underline; }
+
+        /* Modal Footer */
         .modal-footer { padding: 15px 25px; border-top: 1px solid #eee; background: white; border-radius: 0 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
         .new-log-input-wrapper { display: flex; gap: 10px; }
         input.detail-input { flex-grow: 1; padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 15px; }
@@ -165,7 +184,7 @@
         .toast {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px;
-            font-size: 14px; opacity: 0; transition: opacity 0.5s; pointer-events: none;
+            font-size: 14px; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 2000;
         }
     </style>
 </head>
@@ -180,17 +199,13 @@
 
     <div class="input-group" id="input-group-container">
         <input type="text" id="task-input" placeholder="輸入待辦事項..." />
-        
         <div class="options-wrapper">
             <label class="checkbox-wrapper"><input type="checkbox" id="is-important"> 重要</label>
             <label class="checkbox-wrapper"><input type="checkbox" id="is-urgent"> 緊急</label>
-            
             <div class="divider"></div>
-            
             <label class="radio-wrapper"><input type="radio" name="category" value="work" checked> 公事</label>
             <label class="radio-wrapper"><input type="radio" name="category" value="personal"> 私事</label>
         </div>
-
         <button id="add-btn" class="primary-btn">新增事項</button>
     </div>
 
@@ -207,7 +222,27 @@
                 <h2 id="modal-title">標題</h2>
                 <div class="modal-info" id="modal-created-time"></div>
             </div>
-            <div class="logs-container" id="logs-list"></div>
+
+            <div class="modal-scroll-body">
+                
+                <div>
+                    <div class="section-title">
+                        <span>📷 圖片附件</span>
+                        <label for="image-upload" class="upload-btn-label">
+                            ＋ 新增照片
+                        </label>
+                        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+                    </div>
+                    <div class="image-gallery" id="image-gallery">
+                        </div>
+                </div>
+
+                <div>
+                    <div class="section-title">📝 進度日誌</div>
+                    <div class="logs-container" id="logs-list"></div>
+                </div>
+            </div>
+
             <div class="modal-footer">
                 <div class="new-log-input-wrapper">
                     <input type="text" id="new-log-input" class="detail-input" placeholder="輸入新的進度內容..." />
@@ -225,8 +260,8 @@
     <script>
         // === 全域變數 ===
         let allTasks = []; 
-        let currentView = 'work'; // 'work' or 'personal'
-        const STORAGE_KEY = 'eisenhower_matrix_data_v2_split'; // 升級 storage key 避免衝突
+        let currentView = 'work'; 
+        const STORAGE_KEY = 'eisenhower_matrix_v7_images'; // 更新 Key 以區隔版本
 
         // DOM Elements
         const taskInput = document.getElementById('task-input');
@@ -236,31 +271,26 @@
         const logsListContainer = document.getElementById('logs-list');
         const newLogInput = document.getElementById('new-log-input');
         const inputGroupContainer = document.getElementById('input-group-container');
+        const imageGallery = document.getElementById('image-gallery');
         
         let currentEditingTaskId = null;
 
         // === 初始化 ===
         window.addEventListener('DOMContentLoaded', () => {
             loadTasksFromStorage();
-            // 根據預設 currentView 更新 UI
             updateViewUI();
             renderAllTasks();
         });
 
-        // === 1. 視圖切換邏輯 (Core Logic) ===
+        // === 視圖切換 ===
         window.switchView = function(viewType) {
             currentView = viewType;
             updateViewUI();
-            renderAllTasks(); // 重新渲染，只顯示該類別
+            renderAllTasks();
         }
 
         function updateViewUI() {
-            // 1. 更新 Tabs 樣式
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === currentView);
-            });
-
-            // 2. 更新輸入區的顏色與預設 Radio
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.type === currentView));
             if (currentView === 'work') {
                 inputGroupContainer.classList.remove('personal-mode');
                 document.querySelector('input[name="category"][value="work"]').checked = true;
@@ -270,14 +300,12 @@
             }
         }
 
-        // === 2. 新增任務 (含分類) ===
+        // === 新增任務 ===
         document.getElementById('add-btn').addEventListener('click', () => {
             const text = taskInput.value.trim();
             if (!text) { alert("請輸入事項內容！"); return; }
-
             const important = isImportantCheckbox.checked;
             const urgent = isUrgentCheckbox.checked;
-            // 取得當前選中的分類
             const category = document.querySelector('input[name="category"]:checked').value;
             
             let targetId = 'q4';
@@ -289,51 +317,48 @@
                 id: 'task-' + Date.now(),
                 text: text,
                 quadrant: targetId,
-                category: category, // 新增分類屬性
+                category: category,
                 completed: false,
                 createdTime: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                logs: []
+                logs: [],
+                images: [] // 新增圖片陣列
             };
 
             allTasks.push(newTask);
-            
-            // 只有當「新增的類別」等於「當前視圖」時，才立即渲染在畫面上
-            // 否則雖然存進去了，但在當前頁面看不到 (符合邏輯)
-            if (category === currentView) {
-                renderTaskElement(newTask);
-            } else {
-                alert(`已新增至【${category === 'work' ? '工作' : '私人'}】列表`);
-            }
-            
+            if (category === currentView) renderTaskElement(newTask);
             saveToStorage();
-
-            taskInput.value = ''; taskInput.focus();
-            isImportantCheckbox.checked = false; isUrgentCheckbox.checked = false;
+            taskInput.value = ''; isImportantCheckbox.checked = false; isUrgentCheckbox.checked = false;
         });
         
         taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('add-btn').click(); });
 
-        // === 3. 渲染邏輯 (Filtering) ===
+        // === 渲染任務卡片 ===
         function renderAllTasks() {
-            // 清空所有象限
             ['q1', 'q2', 'q3', 'q4'].forEach(id => {
                 const container = document.getElementById(id);
-                // 保留 h3，移除其他 card
                 const title = container.querySelector('h3');
-                container.innerHTML = ''; 
-                container.appendChild(title);
+                container.innerHTML = ''; container.appendChild(title);
             });
-
-            // 過濾並渲染
             const filteredTasks = allTasks.filter(t => t.category === currentView);
             filteredTasks.forEach(task => renderTaskElement(task));
         }
 
         function renderTaskElement(task) {
             const card = document.createElement('div');
-            card.className = `task-card ${task.completed ? 'completed' : ''} ${task.logs.length > 0 ? 'has-content' : ''}`;
+            // 檢查是否有圖或文
+            const hasContent = (task.logs && task.logs.length > 0) || (task.images && task.images.length > 0);
+            
+            card.className = `task-card ${task.completed ? 'completed' : ''} ${hasContent ? 'has-content' : ''}`;
             card.draggable = true;
             card.id = task.id;
+
+            // 統計數量
+            const logCount = task.logs ? task.logs.length : 0;
+            const imgCount = task.images ? task.images.length : 0;
+            const metaText = [];
+            if(logCount > 0) metaText.push(`📝 ${logCount}`);
+            if(imgCount > 0) metaText.push(`📷 ${imgCount}`);
+            const metaDisplay = metaText.join(' ');
 
             card.innerHTML = `
                 <div class="task-header">
@@ -344,60 +369,156 @@
                     </div>
                 </div>
                 <div class="task-meta">
-                    <span class="icon-has-details">📋 <span class="log-count">${task.logs.length}</span> 筆紀錄</span>
+                    <span class="icon-indicator">${metaDisplay}</span>
                     <span class="task-timestamp">${task.createdTime}</span>
                 </div>
             `;
-
             card.addEventListener('dragstart', drag);
             card.addEventListener('click', () => openModal(task.id));
 
             const container = document.getElementById(task.quadrant);
-            if (task.completed) {
-                container.appendChild(card);
-            } else {
+            if (task.completed) container.appendChild(card);
+            else {
                 const title = container.querySelector('h3');
                 if (title && title.nextSibling) container.insertBefore(card, title.nextSibling);
                 else container.appendChild(card);
             }
         }
 
-        // === 4. 動作邏輯 (Toggle, Delete, etc.) ===
         function toggleTaskStatus(event, taskId) {
             event.stopPropagation();
             const task = allTasks.find(t => t.id === taskId);
-            if (task) {
-                task.completed = !task.completed;
-                saveToStorage();
-                // 只有在當前視圖可見時才重畫，其實能點到代表一定可見，直接重畫整個視圖最安全
-                renderAllTasks(); 
-            }
+            if (task) { task.completed = !task.completed; saveToStorage(); renderAllTasks(); }
         }
 
         function removeTask(event, taskId) {
             event.stopPropagation();
             if(confirm('確定要刪除？')) {
                 allTasks = allTasks.filter(t => t.id !== taskId);
-                saveToStorage();
-                document.getElementById(taskId).remove();
+                saveToStorage(); document.getElementById(taskId).remove();
             }
         }
 
-        // === 5. Modal & Logs (維持) ===
+        // === Modal 邏輯 ===
         function openModal(taskId) {
             currentEditingTaskId = taskId;
             const task = allTasks.find(t => t.id === taskId);
             if (!task) return;
             document.getElementById('modal-title').innerText = task.text;
             document.getElementById('modal-created-time').innerText = "建立於: " + task.createdTime;
+            
+            // 初始化 images 陣列 (針對舊資料)
+            if (!task.images) task.images = [];
+            
             renderLogs(task.logs);
+            renderImages(task.images);
+            
             modal.classList.add('active');
-            newLogInput.focus();
         }
 
+        // === 圖片處理邏輯 (New!) ===
+        
+        // 1. 處理上傳
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // 簡單檢查大小 (雖然我們會壓縮，但太大的圖可能導致瀏覽器當機)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert("圖片太大囉，請選擇小於 10MB 的圖片");
+                    return;
+                }
+
+                // 壓縮並讀取
+                compressImage(file, (base64String) => {
+                    const task = allTasks.find(t => t.id === currentEditingTaskId);
+                    if (task) {
+                        task.images.push(base64String);
+                        renderImages(task.images); // 更新畫面
+                        saveToStorage(); // 存檔
+                    }
+                });
+                
+                // 清空 input 讓同一張圖可以再次被選取
+                input.value = '';
+            }
+        }
+
+        // 2. 圖片壓縮演算法
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    // 建立 Canvas
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 設定最大尺寸 (限制在 800px 以內以節省空間)
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 輸出為 JPEG, 品質 0.7
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    callback(dataUrl);
+                }
+            }
+        }
+
+        // 3. 渲染圖片
+        function renderImages(images) {
+            imageGallery.innerHTML = '';
+            if (!images || images.length === 0) {
+                // 不顯示任何東西，保持乾淨
+                return;
+            }
+
+            images.forEach((imgSrc, index) => {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.innerHTML = `
+                    <img src="${imgSrc}" onclick="window.open('${imgSrc}')" title="點擊放大">
+                    <button class="image-delete-btn" onclick="deleteImage(${index})">✕</button>
+                `;
+                imageGallery.appendChild(div);
+            });
+        }
+
+        // 4. 刪除圖片
+        window.deleteImage = function(index) {
+            if(!confirm("確定要刪除這張照片嗎？")) return;
+            const task = allTasks.find(t => t.id === currentEditingTaskId);
+            if (task) {
+                task.images.splice(index, 1);
+                renderImages(task.images);
+                saveToStorage();
+            }
+        }
+
+        // === Logs 邏輯 ===
         function renderLogs(logs) {
             logsListContainer.innerHTML = '';
-            if (logs.length === 0) {
+            if (!logs || logs.length === 0) {
                 logsListContainer.innerHTML = '<div class="empty-state">尚未有進度紀錄</div>';
                 return;
             }
@@ -422,6 +543,7 @@
             if (!text) return;
             const task = allTasks.find(t => t.id === currentEditingTaskId);
             if (task) {
+                if(!task.logs) task.logs = [];
                 task.logs.push({ text: text, time: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) });
                 renderLogs(task.logs);
                 newLogInput.value = '';
@@ -441,12 +563,11 @@
         function saveAndCloseModal() {
             const task = allTasks.find(t => t.id === currentEditingTaskId);
             if (task) {
+                // 更新卡片上的 UI (顯示有幾張圖、幾條紀錄)
                 const card = document.getElementById(task.id);
-                // 只有卡片在當前畫面才更新 DOM (可能在不同 Tab 編輯，雖不常見)
                 if (card) {
-                    card.querySelector('.log-count').innerText = task.logs.length;
-                    if (task.logs.length > 0) card.classList.add('has-content');
-                    else card.classList.remove('has-content');
+                    // 我們需要重新渲染整個卡片 meta 來更新圖示
+                    renderAllTasks(); 
                 }
             }
             modal.classList.remove('active');
@@ -456,7 +577,7 @@
         newLogInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewLog(); });
         modal.addEventListener('click', (e) => { if (e.target === modal) saveAndCloseModal(); });
 
-        // === 6. Drag & Drop ===
+        // === Drag & Drop ===
         function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); ev.target.style.opacity = '0.5'; }
         document.addEventListener("dragend", function(event) { event.target.style.opacity = '1'; });
         function allowDrop(ev) { ev.preventDefault(); }
@@ -477,37 +598,32 @@
             }
         }
 
-        // === 7. Storage (含舊資料遷移) ===
+        // === Storage & Migration ===
         function saveToStorage() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks));
-            showToast();
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks));
+                showToast();
+            } catch (e) {
+                if(e.name === 'QuotaExceededError') {
+                    alert("儲存空間已滿！可能是照片太多了，請刪除一些照片後再試。");
+                }
+            }
         }
 
         function loadTasksFromStorage() {
-            // 1. 嘗試讀取新版 key
             let data = localStorage.getItem(STORAGE_KEY);
-            
-            // 2. 如果新版沒資料，嘗試讀取舊版 key (Migration)
+            // 遷移舊資料 (V2 -> V7)
             if (!data) {
-                const oldData = localStorage.getItem('eisenhower_matrix_data_v1');
-                if (oldData) {
-                    data = oldData;
-                    // 讀取後可選擇是否刪除舊的，這裡保留比較保險
-                }
+                const oldData = localStorage.getItem('eisenhower_matrix_data_v2_split');
+                if (oldData) data = oldData;
             }
 
             if (data) {
                 allTasks = JSON.parse(data);
-                
-                // === 資料遷移邏輯 (Data Migration) ===
-                // 檢查是否每個任務都有 'category'，如果沒有（舊資料），預設設為 'work'
                 allTasks.forEach(task => {
-                    if (!task.category) {
-                        task.category = 'work';
-                    }
+                    if (!task.category) task.category = 'work';
+                    if (!task.images) task.images = []; // 確保有圖片陣列
                 });
-                
-                // 存回新結構，完成遷移
                 saveToStorage();
             }
         }
