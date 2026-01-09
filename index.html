@@ -3,227 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四象限管理系統 (V9.0 子任務版)</title>
+    <title>四象限管理系統 (V10.0 旗艦版)</title>
     <style>
         /* * =========================================
-         * 1. 核心樣式變數
+         * 1. 核心樣式變數 (支援深色模式)
          * =========================================
          */
         :root {
-            --color-q1-bg: #ffe2e2; --color-q1-border: #ff6b6b;
-            --color-q2-bg: #e2f0ff; --color-q2-border: #4dabf7;
-            --color-q3-bg: #fff9db; --color-q3-border: #fcc419;
-            --color-q4-bg: #f8f0fc; --color-q4-border: #ced4da;
-            --color-done-bg: #e9ecef; --color-done-border: #dee2e6;
-            --text-done: #adb5bd;
-            --text-dark: #343a40; --text-muted: #868e96;
-            --radius: 12px; 
+            --bg-body: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-main: #343a40;
+            --text-muted: #868e96;
+            --border-color: #dee2e6;
+            
+            --color-q1-bg: #fff0f0; --color-q1-border: #ff6b6b;
+            --color-q2-bg: #f0f7ff; --color-q2-border: #4dabf7;
+            --color-q3-bg: #fffde7; --color-q3-border: #fcc419;
+            --color-q4-bg: #fcfcfc; --color-q4-border: #ced4da;
+            
             --primary-color: #339af0; 
             --personal-color: #20c997;
             --danger-color: #ff6b6b;
+            --radius: 12px;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #1a1a1a;
+            --bg-card: #2d2d2d;
+            --text-main: #e9ecef;
+            --text-muted: #adb5bd;
+            --border-color: #495057;
+
+            --color-q1-bg: #4a2626; --color-q1-border: #ff6b6b;
+            --color-q2-bg: #1c3b5a; --color-q2-border: #4dabf7;
+            --color-q3-bg: #4d4628; --color-q3-border: #fcc419;
+            --color-q4-bg: #2d2d2d; --color-q4-border: #6c757d;
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         * { box-sizing: border-box; }
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f8f9fa; color: var(--text-dark);
+            background-color: var(--bg-body); color: var(--text-main);
             margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh;
+            min-height: 100vh; transition: background 0.3s, color 0.3s;
         }
 
-        h1 { margin-bottom: 20px; font-weight: 300; color: #495057; }
+        /* Header & Controls */
+        .header-row { display: flex; justify-content: space-between; width: 100%; max-width: 1000px; align-items: center; margin-bottom: 20px; }
+        h1 { margin: 0; font-weight: 300; font-size: 1.8rem; }
+        
+        .top-controls { display: flex; gap: 10px; }
+        .icon-btn { background: none; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px; display: flex; align-items: center; gap: 5px;}
+        .icon-btn:hover { background: var(--border-color); }
 
-        /* * =========================================
-         * 2. 視圖切換 & 輸入區
-         * =========================================
-         */
+        /* View Tabs */
         .view-tabs {
-            display: flex; gap: 10px; margin-bottom: 20px;
-            background: #e9ecef; padding: 5px; border-radius: 30px;
+            display: flex; gap: 5px; margin-bottom: 20px;
+            background: var(--border-color); padding: 4px; border-radius: 30px;
         }
         .tab-btn {
-            border: none; background: transparent; padding: 10px 25px;
-            border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 500;
-            color: #868e96; transition: all 0.3s;
+            border: none; background: transparent; padding: 8px 20px;
+            border-radius: 25px; cursor: pointer; font-size: 15px; font-weight: 500;
+            color: var(--text-muted); transition: all 0.3s;
         }
-        .tab-btn.active[data-type="work"] { background-color: white; color: var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .tab-btn.active[data-type="personal"] { background-color: white; color: var(--personal-color); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .tab-btn.active[data-type="work"] { background-color: var(--bg-card); color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .tab-btn.active[data-type="personal"] { background-color: var(--bg-card); color: var(--personal-color); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
+        /* Input Area */
         .input-group {
-            background: white; padding: 20px; border-radius: var(--radius);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
-            margin-bottom: 30px; width: 100%; max-width: 850px; justify-content: center;
-            border-top: 4px solid var(--primary-color); transition: border-color 0.3s;
+            background: var(--bg-card); padding: 20px; border-radius: var(--radius);
+            box-shadow: var(--shadow); display: flex; gap: 15px; align-items: center; flex-wrap: wrap;
+            margin-bottom: 30px; width: 100%; max-width: 900px; justify-content: center;
+            border-top: 4px solid var(--primary-color); transition: border-color 0.3s, background 0.3s;
         }
         .input-group.personal-mode { border-top-color: var(--personal-color); }
 
-        input[type="text"] { padding: 10px 15px; border: 1px solid #dee2e6; border-radius: 6px; flex-grow: 1; font-size: 16px; min-width: 200px; }
+        input[type="text"], input[type="date"] { 
+            padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 6px; 
+            flex-grow: 1; font-size: 16px; background: var(--bg-body); color: var(--text-main);
+        }
+        input[type="date"] { flex-grow: 0; width: 150px; }
+        
         .options-wrapper { display: flex; gap: 15px; align-items: center; }
         .checkbox-wrapper, .radio-wrapper { display: flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; font-size: 15px;}
-        .divider { width: 1px; height: 24px; background: #dee2e6; margin: 0 5px; }
+        .divider { width: 1px; height: 24px; background: var(--border-color); margin: 0 5px; }
 
         button.primary-btn {
             background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; 
-            cursor: pointer; font-size: 16px; transition: background 0.2s;
+            cursor: pointer; font-size: 16px; transition: background 0.2s; white-space: nowrap;
         }
-        button.primary-btn:hover { background-color: #228be6; }
+        button.primary-btn:hover { filter: brightness(1.1); }
         .input-group.personal-mode button.primary-btn { background-color: var(--personal-color); }
-        .input-group.personal-mode button.primary-btn:hover { background-color: #12b886; }
 
-        /* * =========================================
-         * 3. 矩陣與卡片
-         * =========================================
-         */
+        /* Matrix */
         .matrix-container { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 20px; width: 100%; max-width: 1000px; height: 70vh; }
         @media (max-width: 768px) { .matrix-container { grid-template-columns: 1fr; grid-template-rows: auto; height: auto; } }
 
         .quadrant {
-            background-color: white; border-radius: var(--radius); padding: 15px;
+            background-color: var(--bg-card); border-radius: var(--radius); padding: 15px;
             display: flex; flex-direction: column; border-top: 5px solid transparent;
-            min-height: 200px; transition: transform 0.2s; overflow-y: auto;
+            min-height: 200px; transition: transform 0.2s, background 0.3s; overflow-y: auto;
+            box-shadow: var(--shadow);
         }
         #q1 { background-color: var(--color-q1-bg); border-color: var(--color-q1-border); }
         #q2 { background-color: var(--color-q2-bg); border-color: var(--color-q2-border); }
         #q3 { background-color: var(--color-q3-bg); border-color: var(--color-q3-border); }
         #q4 { background-color: var(--color-q4-bg); border-color: var(--color-q4-border); }
-        .quadrant.drag-over { transform: scale(1.02); filter: brightness(0.95); }
-        .quadrant h3 { margin: 0 0 15px 0; font-size: 1.1rem; text-align: center; opacity: 0.8; pointer-events: none; }
+        
+        .quadrant h3 { margin: 0 0 15px 0; font-size: 1.1rem; text-align: center; opacity: 0.8; pointer-events: none; color: var(--text-main); }
 
+        /* Task Card */
         .task-card {
-            background: white; padding: 12px; margin-bottom: 10px; border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; position: relative;
-            transition: all 0.3s ease; border-left: 4px solid transparent;
+            background: var(--bg-card); padding: 12px; margin-bottom: 10px; border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; position: relative;
+            transition: all 0.2s ease; border-left: 4px solid transparent;
         }
-        .task-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.15); transform: translateY(-1px); }
-        .task-card.completed { background-color: var(--color-done-bg); border: 1px solid var(--color-done-border); opacity: 0.7; box-shadow: none; transform: none; }
-        .task-card.completed .task-title { text-decoration: line-through; color: var(--text-done); }
+        .task-card:hover { box-shadow: 0 5px 10px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .task-card.completed { opacity: 0.6; transform: none; box-shadow: none; background: rgba(0,0,0,0.03); }
+        .task-card.completed .task-title { text-decoration: line-through; color: var(--text-muted); }
         
-        .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; gap: 10px; }
-        .task-title { font-weight: 500; font-size: 16px; word-break: break-all; flex-grow: 1; }
-        .task-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-        input.task-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #20c997; }
-        .delete-btn { background: none; border: none; color: #adb5bd; cursor: pointer; font-size: 18px; line-height: 1; padding: 0; }
-        .delete-btn:hover { color: var(--danger-color); }
+        .task-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .task-title { font-weight: 500; font-size: 16px; word-break: break-all; flex-grow: 1; color: var(--text-main); }
         
-        .task-meta { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px; font-size: 12px; color: var(--text-muted); }
-        .icon-indicator { opacity: 0; color: var(--text-muted); display: flex; align-items: center; gap: 6px; font-weight: 500;}
-        .task-card.has-content .icon-indicator { opacity: 1; }
+        .task-meta-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: var(--text-muted); }
+        .meta-left { display: flex; gap: 8px; align-items: center; }
         
-        /* * =========================================
-         * 4. Modal 與 圖片樣式
-         * =========================================
-         */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
+        /* Progress Bar on Card */
+        .mini-progress-track { width: 50px; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden; display: none; }
+        .mini-progress-fill { height: 100%; background: var(--personal-color); width: 0%; transition: width 0.3s; }
+        .task-card.has-progress .mini-progress-track { display: block; }
+
+        .due-date-tag { display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; }
+        .due-date-tag.overdue { color: var(--danger-color); background: rgba(255, 107, 107, 0.1); font-weight: bold; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 1000; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: white; padding: 0; width: 90%; max-width: 600px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.3s ease; display: flex; flex-direction: column; max-height: 90vh; }
-        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-content { background: var(--bg-card); width: 90%; max-width: 600px; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); display: flex; flex-direction: column; max-height: 90vh; animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        .modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; background: #fafafa; border-radius: 12px 12px 0 0; }
-        .modal-header h2 { margin: 0; font-size: 1.3rem; color: #333; }
-        .modal-info { font-size: 13px; color: #888; margin-top: 5px; }
-
-        .modal-scroll-body { flex-grow: 1; overflow-y: auto; padding: 20px 25px; display: flex; flex-direction: column; gap: 20px; }
-
-        .section-title { font-size: 14px; color: #868e96; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 5px; }
+        input.title-edit-input { font-size: 1.4rem; font-weight: bold; border: none; background: transparent; color: var(--text-main); padding: 0; width: 100%; outline: none; }
+        input.title-edit-input:focus { border-bottom: 2px solid var(--primary-color); }
         
-        .image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .modal-scroll-body { flex-grow: 1; overflow-y: auto; padding: 20px 25px; display: flex; flex-direction: column; gap: 25px; }
+        .section-title { font-size: 13px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+
+        /* Logs & Images */
+        .log-item { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
+        .log-checkbox { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
+        .log-content-box { flex-grow: 1; }
+        .log-text { font-size: 15px; color: var(--text-main); transition: color 0.2s; line-height: 1.4; }
+        .log-text.completed { text-decoration: line-through; color: var(--text-muted); }
         
-        .image-item {
-            position: relative; width: 100%; aspect-ratio: 1/1; 
-            border-radius: 8px; overflow: hidden; border: 1px solid #dee2e6;
-            cursor: pointer;
-        }
+        .image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
+        .image-item { position: relative; aspect-ratio: 1/1; border-radius: 8px; overflow: hidden; cursor: pointer; border: 1px solid var(--border-color); }
         .image-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
         .image-item:hover img { transform: scale(1.1); }
-        
-        .image-delete-btn {
-            position: absolute; top: 4px; right: 4px;
-            background: rgba(0,0,0,0.6); color: white; border: none;
-            width: 24px; height: 24px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; z-index: 2;
-        }
+        .image-delete-btn { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border: none; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; opacity: 0; }
         .image-item:hover .image-delete-btn { opacity: 1; }
-        .image-delete-btn:hover { background: var(--danger-color); }
 
-        .upload-btn-label {
-            display: inline-flex; align-items: center; gap: 5px;
-            background: #e9ecef; color: #495057; padding: 5px 12px;
-            border-radius: 20px; font-size: 12px; cursor: pointer; transition: background 0.2s;
-        }
-        .upload-btn-label:hover { background: #dee2e6; }
+        .modal-footer { padding: 15px 25px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; }
+        .new-log-wrapper { display: flex; gap: 10px; }
+        
+        /* Toast & Lightbox */
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .lightbox-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 3000; justify-content: center; align-items: center; }
+        .lightbox-overlay.active { display: flex; }
+        .lightbox-img { max-width: 95%; max-height: 95%; border-radius: 4px; }
 
-        /* * =========================================
-         * 5. Logs 樣式 (更新：支援 Checkbox)
-         * =========================================
-         */
-        .logs-container { min-height: 100px; }
-        .empty-state { text-align: center; color: #adb5bd; margin-top: 20px; font-size: 14px; font-style: italic; }
-        
-        .log-item { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; }
-        
-        /* New: 日誌的 Checkbox */
-        .log-checkbox {
-            margin-top: 12px; width: 16px; height: 16px; cursor: pointer; 
-            accent-color: var(--primary-color); flex-shrink: 0;
-        }
-        
-        .log-content-box { 
-            background: #f1f3f5; border-radius: 8px; padding: 10px 15px; 
-            position: relative; flex-grow: 1; transition: all 0.2s;
-        }
-        
-        /* 完成後的樣式 */
-        .log-content-box.completed { background: #f8f9fa; opacity: 0.8; }
-        .log-text { font-size: 15px; line-height: 1.5; color: #333; white-space: pre-wrap; transition: color 0.2s;}
-        .log-text.completed { text-decoration: line-through; color: #adb5bd; }
-        
-        .log-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 5px; }
-        .log-time { font-size: 12px; color: #868e96; font-weight: 500; }
-        .delete-log-btn { color: #adb5bd; cursor: pointer; font-size: 12px; border: none; background: none; }
-        .delete-log-btn:hover { color: var(--danger-color); text-decoration: underline; }
-
-        .modal-footer { padding: 15px 25px; border-top: 1px solid #eee; background: white; border-radius: 0 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
-        .new-log-input-wrapper { display: flex; gap: 10px; }
-        input.detail-input { flex-grow: 1; padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 15px; }
-        input.detail-input:focus { outline: 2px solid var(--primary-color); border-color: transparent; }
-        .save-btn-wrapper { display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px; }
-        button.add-log-btn { background: var(--primary-color); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; }
-        button.close-btn { background: #e9ecef; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; color: #495057; }
-        
-        .toast {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px;
-            font-size: 14px; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 2000;
-        }
-
-        /* * =========================================
-         * 6. Lightbox
-         * =========================================
-         */
-        .lightbox-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); z-index: 3000; 
-            justify-content: center; align-items: center;
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .lightbox-overlay.active { display: flex; opacity: 1; }
-        .lightbox-img {
-            max-width: 90%; max-height: 90%; 
-            border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transform: scale(0.9); transition: transform 0.3s ease;
-        }
-        .lightbox-overlay.active .lightbox-img { transform: scale(1); }
-        .lightbox-close {
-            position: absolute; top: 20px; right: 20px;
-            color: white; font-size: 30px; cursor: pointer; opacity: 0.8;
-        }
-        .lightbox-close:hover { opacity: 1; }
+        /* Utility */
+        .hidden-file-input { display: none; }
     </style>
 </head>
 <body>
 
-    <h1>我的時間管理矩陣</h1>
+    <div class="header-row">
+        <h1>四象限管理 <span style="font-size: 0.5em; color: var(--primary-color); vertical-align: middle;">V10.0</span></h1>
+        <div class="top-controls">
+            <button class="icon-btn" onclick="toggleTheme()" title="切換深色模式">🌓</button>
+            <button class="icon-btn" onclick="exportData()" title="備份資料">⬇ 匯出</button>
+            <button class="icon-btn" onclick="document.getElementById('import-file').click()" title="還原資料">⬆ 匯入</button>
+            <input type="file" id="import-file" class="hidden-file-input" accept=".json" onchange="importData(this)">
+        </div>
+    </div>
 
     <div class="view-tabs">
         <button class="tab-btn active" data-type="work" onclick="switchView('work')">💼 工作</button>
@@ -232,6 +197,7 @@
 
     <div class="input-group" id="input-group-container">
         <input type="text" id="task-input" placeholder="輸入待辦事項..." />
+        <input type="date" id="task-date" title="截止日期 (選填)">
         <div class="options-wrapper">
             <label class="checkbox-wrapper"><input type="checkbox" id="is-important"> 重要</label>
             <label class="checkbox-wrapper"><input type="checkbox" id="is-urgent"> 緊急</label>
@@ -239,85 +205,98 @@
             <label class="radio-wrapper"><input type="radio" name="category" value="work" checked> 公事</label>
             <label class="radio-wrapper"><input type="radio" name="category" value="personal"> 私事</label>
         </div>
-        <button id="add-btn" class="primary-btn">新增事項</button>
+        <button id="add-btn" class="primary-btn">新增</button>
     </div>
 
     <div class="matrix-container">
-        <div class="quadrant" id="q1" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"><h3>🔥 重要且緊急</h3></div>
-        <div class="quadrant" id="q2" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"><h3>📅 重要但不緊急</h3></div>
-        <div class="quadrant" id="q3" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"><h3>⚡ 緊急但不重要</h3></div>
-        <div class="quadrant" id="q4" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"><h3>☕ 不重要也不緊急</h3></div>
+        <div class="quadrant" id="q1" ondrop="drop(event)" ondragover="allowDrop(event)"><h3>🔥 重要且緊急</h3></div>
+        <div class="quadrant" id="q2" ondrop="drop(event)" ondragover="allowDrop(event)"><h3>📅 重要但不緊急</h3></div>
+        <div class="quadrant" id="q3" ondrop="drop(event)" ondragover="allowDrop(event)"><h3>⚡ 緊急但不重要</h3></div>
+        <div class="quadrant" id="q4" ondrop="drop(event)" ondragover="allowDrop(event)"><h3>☕ 不重要也不緊急</h3></div>
     </div>
 
+    <!-- Modal -->
     <div class="modal-overlay" id="detail-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modal-title">標題</h2>
-                <div class="modal-info" id="modal-created-time"></div>
+                <input type="text" id="modal-title-input" class="title-edit-input" onblur="updateTaskTitle()">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                    <span id="modal-created-time"></span>
+                    <span id="modal-due-date"></span>
+                </div>
             </div>
 
             <div class="modal-scroll-body">
+                <!-- 子任務區 -->
                 <div>
                     <div class="section-title">
-                        <span>📷 圖片附件</span>
-                        <label for="image-upload" class="upload-btn-label">＋ 新增照片</label>
+                        <span>✅ 子任務清單</span>
+                        <span id="progress-text" style="font-weight: normal; font-size: 12px;">0%</span>
+                    </div>
+                    <div id="logs-list"></div>
+                </div>
+
+                <!-- 圖片區 -->
+                <div>
+                    <div class="section-title">
+                        <span>📷 附件</span>
+                        <label for="image-upload" style="cursor: pointer; color: var(--primary-color); font-size: 12px;">+ 新增</label>
                         <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
                     </div>
                     <div class="image-gallery" id="image-gallery"></div>
                 </div>
-                <div>
-                    <div class="section-title">📝 進度日誌 (子任務)</div>
-                    <div class="logs-container" id="logs-list"></div>
-                </div>
             </div>
 
             <div class="modal-footer">
-                <div class="new-log-input-wrapper">
-                    <input type="text" id="new-log-input" class="detail-input" placeholder="輸入新的進度內容..." />
-                    <button class="add-log-btn" onclick="addNewLog()">新增紀錄</button>
+                <div class="new-log-wrapper">
+                    <input type="text" id="new-log-input" placeholder="新增子任務..." style="flex-grow:1; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-body); color: var(--text-main);">
+                    <button onclick="addNewLog()" style="background: var(--primary-color); color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer;">＋</button>
                 </div>
-                <div class="save-btn-wrapper">
-                    <button class="close-btn" onclick="saveAndCloseModal()">關閉並儲存</button>
-                </div>
+                <button onclick="closeModal()" style="width: 100%; padding: 10px; background: var(--border-color); border: none; border-radius: 6px; cursor: pointer; color: var(--text-main); margin-top: 5px;">關閉</button>
             </div>
         </div>
     </div>
 
-    <div id="lightbox-overlay" class="lightbox-overlay" onclick="closeLightbox()">
-        <span class="lightbox-close">&times;</span>
-        <img id="lightbox-img" class="lightbox-img" src="" alt="Full size preview">
+    <!-- Lightbox -->
+    <div id="lightbox-overlay" class="lightbox-overlay" onclick="this.classList.remove('active')">
+        <img id="lightbox-img" class="lightbox-img" src="">
     </div>
 
-    <div id="save-toast" class="toast">已自動儲存</div>
+    <div id="save-toast" class="toast">已儲存</div>
 
     <script>
-        // === 全域變數 ===
+        // === 1. 核心變數與初始化 ===
         let allTasks = []; 
         let currentView = 'work'; 
-        const STORAGE_KEY = 'eisenhower_matrix_v7_images'; 
+        let currentEditingTaskId = null;
+        const STORAGE_KEY = 'eisenhower_v10_data'; 
+        const THEME_KEY = 'eisenhower_v10_theme';
 
         // DOM Elements
         const taskInput = document.getElementById('task-input');
-        const isImportantCheckbox = document.getElementById('is-important');
-        const isUrgentCheckbox = document.getElementById('is-urgent');
+        const taskDate = document.getElementById('task-date');
         const modal = document.getElementById('detail-modal');
-        const logsListContainer = document.getElementById('logs-list');
-        const newLogInput = document.getElementById('new-log-input');
-        const inputGroupContainer = document.getElementById('input-group-container');
-        const imageGallery = document.getElementById('image-gallery');
-        const lightboxOverlay = document.getElementById('lightbox-overlay');
-        const lightboxImg = document.getElementById('lightbox-img');
         
-        let currentEditingTaskId = null;
-
-        // === 初始化 ===
+        // 初始化
         window.addEventListener('DOMContentLoaded', () => {
-            loadTasksFromStorage();
+            loadTheme();
+            loadTasks();
             updateViewUI();
-            renderAllTasks();
         });
 
-        // === 視圖切換 ===
+        // === 2. 主題與視圖 ===
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem(THEME_KEY);
+            if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
+        }
+
         window.switchView = function(viewType) {
             currentView = viewType;
             updateViewUI();
@@ -326,27 +305,33 @@
 
         function updateViewUI() {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.type === currentView));
+            const inputGroup = document.getElementById('input-group-container');
             if (currentView === 'work') {
-                inputGroupContainer.classList.remove('personal-mode');
+                inputGroup.classList.remove('personal-mode');
                 document.querySelector('input[name="category"][value="work"]').checked = true;
             } else {
-                inputGroupContainer.classList.add('personal-mode');
+                inputGroup.classList.add('personal-mode');
                 document.querySelector('input[name="category"][value="personal"]').checked = true;
             }
         }
 
-        // === 新增任務 ===
-        document.getElementById('add-btn').addEventListener('click', () => {
+        // === 3. 任務管理 (CRUD) ===
+        document.getElementById('add-btn').addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+
+        function addTask() {
             const text = taskInput.value.trim();
             if (!text) { alert("請輸入事項內容！"); return; }
-            const important = isImportantCheckbox.checked;
-            const urgent = isUrgentCheckbox.checked;
-            const category = document.querySelector('input[name="category"]:checked').value;
             
+            const isImportant = document.getElementById('is-important').checked;
+            const isUrgent = document.getElementById('is-urgent').checked;
+            const category = document.querySelector('input[name="category"]:checked').value;
+            const dueDate = taskDate.value;
+
             let targetId = 'q4';
-            if (important && urgent) targetId = 'q1';
-            else if (important && !urgent) targetId = 'q2';
-            else if (!important && urgent) targetId = 'q3';
+            if (isImportant && isUrgent) targetId = 'q1';
+            else if (isImportant && !isUrgent) targetId = 'q2';
+            else if (!isImportant && isUrgent) targetId = 'q3';
 
             const newTask = {
                 id: 'task-' + Date.now(),
@@ -355,272 +340,323 @@
                 category: category,
                 completed: false,
                 createdTime: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                logs: [],
+                dueDate: dueDate,
+                logs: [], // 子任務
                 images: []
             };
 
             allTasks.push(newTask);
-            if (category === currentView) renderTaskElement(newTask);
-            saveToStorage();
-            taskInput.value = ''; isImportantCheckbox.checked = false; isUrgentCheckbox.checked = false;
-        });
-        
-        taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('add-btn').click(); });
+            saveData();
+            renderAllTasks();
+            
+            // Reset inputs
+            taskInput.value = ''; 
+            taskDate.value = '';
+            document.getElementById('is-important').checked = false; 
+            document.getElementById('is-urgent').checked = false;
+        }
 
-        // === 渲染任務卡片 ===
         function renderAllTasks() {
             ['q1', 'q2', 'q3', 'q4'].forEach(id => {
                 const container = document.getElementById(id);
                 const title = container.querySelector('h3');
                 container.innerHTML = ''; container.appendChild(title);
             });
+
             const filteredTasks = allTasks.filter(t => t.category === currentView);
-            filteredTasks.forEach(task => renderTaskElement(task));
-        }
-
-        function renderTaskElement(task) {
-            const card = document.createElement('div');
-            const hasContent = (task.logs && task.logs.length > 0) || (task.images && task.images.length > 0);
             
-            card.className = `task-card ${task.completed ? 'completed' : ''} ${hasContent ? 'has-content' : ''}`;
-            card.draggable = true;
-            card.id = task.id;
+            filteredTasks.forEach(task => {
+                const card = document.createElement('div');
+                
+                // 計算子任務進度
+                const totalLogs = task.logs ? task.logs.length : 0;
+                const doneLogs = task.logs ? task.logs.filter(l => l.completed).length : 0;
+                const progressPercent = totalLogs > 0 ? (doneLogs / totalLogs) * 100 : 0;
+                const hasProgress = totalLogs > 0;
 
-            const logCount = task.logs ? task.logs.length : 0;
-            const imgCount = task.images ? task.images.length : 0;
-            const metaText = [];
-            if(logCount > 0) metaText.push(`📝 ${logCount}`);
-            if(imgCount > 0) metaText.push(`📷 ${imgCount}`);
-            const metaDisplay = metaText.join(' ');
-
-            card.innerHTML = `
-                <div class="task-header">
-                    <span class="task-title">${task.text}</span>
-                    <div class="task-actions">
-                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTaskStatus(event, '${task.id}')">
-                        <button class="delete-btn" onclick="removeTask(event, '${task.id}')">✕</button>
-                    </div>
-                </div>
-                <div class="task-meta">
-                    <span class="icon-indicator">${metaDisplay}</span>
-                    <span class="task-timestamp">${task.createdTime}</span>
-                </div>
-            `;
-            card.addEventListener('dragstart', drag);
-            card.addEventListener('click', () => openModal(task.id));
-
-            const container = document.getElementById(task.quadrant);
-            if (task.completed) container.appendChild(card);
-            else {
-                const title = container.querySelector('h3');
-                if (title && title.nextSibling) container.insertBefore(card, title.nextSibling);
-                else container.appendChild(card);
-            }
-        }
-
-        function toggleTaskStatus(event, taskId) {
-            event.stopPropagation();
-            const task = allTasks.find(t => t.id === taskId);
-            if (task) { task.completed = !task.completed; saveToStorage(); renderAllTasks(); }
-        }
-
-        function removeTask(event, taskId) {
-            event.stopPropagation();
-            if(confirm('確定要刪除？')) {
-                allTasks = allTasks.filter(t => t.id !== taskId);
-                saveToStorage(); document.getElementById(taskId).remove();
-            }
-        }
-
-        // === Modal 邏輯 ===
-        function openModal(taskId) {
-            currentEditingTaskId = taskId;
-            const task = allTasks.find(t => t.id === taskId);
-            if (!task) return;
-            document.getElementById('modal-title').innerText = task.text;
-            document.getElementById('modal-created-time').innerText = "建立於: " + task.createdTime;
-            if (!task.images) task.images = [];
-            renderLogs(task.logs);
-            renderImages(task.images);
-            modal.classList.add('active');
-        }
-
-        // === 圖片處理 ===
-        function handleImageUpload(input) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                if (file.size > 10 * 1024 * 1024) { alert("圖片太大囉，請選擇小於 10MB 的圖片"); return; }
-                compressImage(file, (base64String) => {
-                    const task = allTasks.find(t => t.id === currentEditingTaskId);
-                    if (task) { task.images.push(base64String); renderImages(task.images); saveToStorage(); }
-                });
-                input.value = '';
-            }
-        }
-
-        function compressImage(file, callback) {
-            const reader = new FileReader(); reader.readAsDataURL(file);
-            reader.onload = function(event) {
-                const img = new Image(); img.src = event.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 800; const MAX_HEIGHT = 800;
-                    let width = img.width; let height = img.height;
-                    if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
-                    else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
-                    canvas.width = width; canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    callback(canvas.toDataURL('image/jpeg', 0.7));
+                // 截止日期邏輯
+                let dateHtml = '';
+                if (task.dueDate) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const isOverdue = task.dueDate < today && !task.completed;
+                    dateHtml = `<span class="due-date-tag ${isOverdue ? 'overdue' : ''}">📅 ${task.dueDate.slice(5)}</span>`;
                 }
-            }
-        }
 
-        function renderImages(images) {
-            imageGallery.innerHTML = '';
-            if (!images || images.length === 0) return;
-            images.forEach((imgSrc, index) => {
-                const div = document.createElement('div'); div.className = 'image-item';
-                div.innerHTML = `<img src="${imgSrc}" onclick="openLightbox('${imgSrc}')" title="點擊預覽"><button class="image-delete-btn" onclick="deleteImage(event, ${index})">✕</button>`;
-                imageGallery.appendChild(div);
+                card.className = `task-card ${task.completed ? 'completed' : ''} ${hasProgress ? 'has-progress' : ''}`;
+                card.draggable = true;
+                card.id = task.id;
+                card.innerHTML = `
+                    <div class="task-header">
+                        <span class="task-title">${task.text}</span>
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTaskStatus(event, '${task.id}')" style="width:18px; height:18px; cursor:pointer;">
+                    </div>
+                    <div class="task-meta-row">
+                        <div class="meta-left">
+                            ${dateHtml}
+                            ${task.images && task.images.length > 0 ? '<span>📷</span>' : ''}
+                        </div>
+                        <button onclick="deleteTask(event, '${task.id}')" style="background:none; border:none; color:#adb5bd; cursor:pointer;">✕</button>
+                    </div>
+                    <div class="mini-progress-track">
+                        <div class="mini-progress-fill" style="width: ${progressPercent}%"></div>
+                    </div>
+                `;
+
+                card.addEventListener('dragstart', (ev) => { ev.dataTransfer.setData("text", ev.target.id); ev.target.style.opacity = '0.5'; });
+                card.addEventListener('dragend', (ev) => { ev.target.style.opacity = '1'; });
+                card.addEventListener('click', (e) => { if(e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') openModal(task.id); });
+
+                const container = document.getElementById(task.quadrant);
+                if (task.completed) container.appendChild(card);
+                else {
+                    const title = container.querySelector('h3');
+                    if (title && title.nextSibling) container.insertBefore(card, title.nextSibling);
+                    else container.appendChild(card);
+                }
             });
         }
 
-        window.openLightbox = function(src) { lightboxImg.src = src; lightboxOverlay.classList.add('active'); }
-        window.closeLightbox = function() { lightboxOverlay.classList.remove('active'); setTimeout(() => { lightboxImg.src = ''; }, 300); }
-        window.deleteImage = function(event, index) {
-            event.stopPropagation();
-            if(!confirm("確定要刪除這張照片嗎？")) return;
-            const task = allTasks.find(t => t.id === currentEditingTaskId);
-            if (task) { task.images.splice(index, 1); renderImages(task.images); saveToStorage(); }
+        function toggleTaskStatus(e, id) {
+            e.stopPropagation();
+            const task = allTasks.find(t => t.id === id);
+            if (task) { task.completed = !task.completed; saveData(); renderAllTasks(); }
         }
 
-        // === Logs 邏輯 (更新：Checkbox) ===
-        function renderLogs(logs) {
-            logsListContainer.innerHTML = '';
-            if (!logs || logs.length === 0) {
-                logsListContainer.innerHTML = '<div class="empty-state">尚未有進度紀錄</div>';
+        function deleteTask(e, id) {
+            e.stopPropagation();
+            if(confirm('確定刪除此任務？')) {
+                allTasks = allTasks.filter(t => t.id !== id);
+                saveData(); renderAllTasks();
+            }
+        }
+
+        // === 4. Modal 詳細頁 ===
+        function openModal(id) {
+            currentEditingTaskId = id;
+            const task = allTasks.find(t => t.id === id);
+            if (!task) return;
+
+            document.getElementById('modal-title-input').value = task.text;
+            document.getElementById('modal-created-time').innerText = "建立: " + task.createdTime;
+            document.getElementById('modal-due-date').innerText = task.dueDate ? "截止: " + task.dueDate : "";
+            
+            renderLogs(task);
+            renderImages(task.images || []);
+            modal.classList.add('active');
+        }
+
+        function updateTaskTitle() {
+            const newTitle = document.getElementById('modal-title-input').value.trim();
+            const task = allTasks.find(t => t.id === currentEditingTaskId);
+            if (task && newTitle) {
+                task.text = newTitle;
+                saveData();
+                renderAllTasks(); // 更新背景卡片
+            }
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            currentEditingTaskId = null;
+        }
+
+        // === 5. 子任務 (Logs) ===
+        function renderLogs(task) {
+            const container = document.getElementById('logs-list');
+            container.innerHTML = '';
+            const logs = task.logs || [];
+            
+            // 計算進度文字
+            const done = logs.filter(l => l.completed).length;
+            const total = logs.length;
+            const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+            document.getElementById('progress-text').innerText = `${done}/${total} (${percent}%)`;
+
+            if (logs.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-muted); font-style:italic; font-size:13px;">尚無子任務</div>';
                 return;
             }
-            // 使用 reverse 的副本來顯示，但要小心 index
-            [...logs].reverse().forEach((log) => {
-                // 找出該 log 在原陣列中的真實 index
-                const realIndex = logs.indexOf(log);
-                
-                const logItem = document.createElement('div');
-                logItem.className = 'log-item';
-                
-                // 判斷是否完成，設定樣式
-                const completedClass = log.completed ? 'completed' : '';
-                const checkedAttr = log.completed ? 'checked' : '';
 
-                logItem.innerHTML = `
-                    <input type="checkbox" class="log-checkbox" ${checkedAttr} onchange="toggleLogStatus(${realIndex})">
-                    <div class="log-content-box ${completedClass}">
-                        <div class="log-text ${completedClass}">${log.text}</div>
-                        <div class="log-meta">
-                            <span class="log-time">${log.time}</span>
-                            <button class="delete-log-btn" onclick="deleteLog(${realIndex})">刪除</button>
-                        </div>
+            logs.forEach((log, index) => {
+                const div = document.createElement('div');
+                div.className = 'log-item';
+                div.innerHTML = `
+                    <input type="checkbox" class="log-checkbox" ${log.completed ? 'checked' : ''} onchange="toggleLog(${index})">
+                    <div class="log-content-box">
+                        <div class="log-text ${log.completed ? 'completed' : ''}">${log.text}</div>
                     </div>
+                    <button onclick="deleteLog(${index})" style="border:none; background:none; color:var(--danger-color); cursor:pointer; font-size:12px;">✕</button>
                 `;
-                logsListContainer.appendChild(logItem);
+                container.appendChild(div);
             });
         }
 
         function addNewLog() {
-            const text = newLogInput.value.trim();
+            const input = document.getElementById('new-log-input');
+            const text = input.value.trim();
             if (!text) return;
+            
             const task = allTasks.find(t => t.id === currentEditingTaskId);
             if (task) {
-                if(!task.logs) task.logs = [];
-                // 新增日誌物件，加入 completed 屬性
-                task.logs.push({ 
-                    text: text, 
-                    time: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                    completed: false 
-                });
-                renderLogs(task.logs);
-                newLogInput.value = '';
-                saveToStorage();
+                if (!task.logs) task.logs = [];
+                task.logs.push({ text: text, completed: false });
+                input.value = '';
+                saveData();
+                renderLogs(task);
+                renderAllTasks(); // 更新外部進度條
             }
         }
 
-        window.toggleLogStatus = function(realIndex) {
-            const task = allTasks.find(t => t.id === currentEditingTaskId);
-            if (task && task.logs[realIndex]) {
-                task.logs[realIndex].completed = !task.logs[realIndex].completed;
-                renderLogs(task.logs); // 重新渲染以更新樣式
-                saveToStorage();
-            }
-        }
-
-        window.deleteLog = function(realIndex) {
+        window.toggleLog = function(index) {
             const task = allTasks.find(t => t.id === currentEditingTaskId);
             if (task) {
-                task.logs.splice(realIndex, 1);
-                renderLogs(task.logs);
-                saveToStorage();
+                task.logs[index].completed = !task.logs[index].completed;
+                saveData();
+                renderLogs(task);
+                renderAllTasks();
             }
         }
 
-        function saveAndCloseModal() {
+        window.deleteLog = function(index) {
             const task = allTasks.find(t => t.id === currentEditingTaskId);
-            if (task) renderAllTasks(); 
-            modal.classList.remove('active');
-            currentEditingTaskId = null;
+            if (task) {
+                task.logs.splice(index, 1);
+                saveData();
+                renderLogs(task);
+                renderAllTasks();
+            }
         }
         
-        newLogInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewLog(); });
-        modal.addEventListener('click', (e) => { if (e.target === modal) saveAndCloseModal(); });
+        document.getElementById('new-log-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') addNewLog(); });
 
-        // === Drag & Drop & Storage ===
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); ev.target.style.opacity = '0.5'; }
-        document.addEventListener("dragend", function(event) { event.target.style.opacity = '1'; });
+        // === 6. 圖片處理 ===
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // 簡單壓縮邏輯
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const MAX_SIZE = 800;
+                        let w = img.width, h = img.height;
+                        if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE/w; w = MAX_SIZE; } }
+                        else { if (h > MAX_SIZE) { w *= MAX_SIZE/h; h = MAX_SIZE; } }
+                        canvas.width = w; canvas.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
+                        
+                        const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                        const task = allTasks.find(t => t.id === currentEditingTaskId);
+                        if (task) {
+                            if(!task.images) task.images = [];
+                            task.images.push(base64);
+                            saveData();
+                            renderImages(task.images);
+                            renderAllTasks();
+                        }
+                    }
+                }
+                reader.readAsDataURL(file);
+                input.value = '';
+            }
+        }
+
+        function renderImages(images) {
+            const gallery = document.getElementById('image-gallery');
+            gallery.innerHTML = '';
+            images.forEach((src, idx) => {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.innerHTML = `
+                    <img src="${src}" onclick="document.getElementById('lightbox-img').src='${src}'; document.getElementById('lightbox-overlay').classList.add('active');">
+                    <button class="image-delete-btn" onclick="deleteImage(${idx})">✕</button>
+                `;
+                gallery.appendChild(div);
+            });
+        }
+
+        window.deleteImage = function(index) {
+            if(!confirm("刪除此照片？")) return;
+            const task = allTasks.find(t => t.id === currentEditingTaskId);
+            if (task) {
+                task.images.splice(index, 1);
+                saveData();
+                renderImages(task.images);
+                renderAllTasks();
+            }
+        }
+
+        // === 7. 拖放與資料存取 ===
         function allowDrop(ev) { ev.preventDefault(); }
-        function dragEnter(ev) { ev.preventDefault(); if (ev.target.classList.contains('quadrant')) ev.target.classList.add('drag-over'); }
-        function dragLeave(ev) { if (ev.target.classList.contains('quadrant')) ev.target.classList.remove('drag-over'); }
         function drop(ev) {
             ev.preventDefault();
             const quadrant = ev.target.closest('.quadrant');
-            if(quadrant) {
-                quadrant.classList.remove('drag-over');
-                const taskId = ev.dataTransfer.getData("text");
-                const card = document.getElementById(taskId);
-                if(card) {
-                    quadrant.appendChild(card);
-                    const task = allTasks.find(t => t.id === taskId);
-                    if (task) { task.quadrant = quadrant.id; saveToStorage(); }
+            const taskId = ev.dataTransfer.getData("text");
+            if (quadrant && taskId) {
+                const task = allTasks.find(t => t.id === taskId);
+                if (task && task.quadrant !== quadrant.id) {
+                    task.quadrant = quadrant.id;
+                    saveData();
+                    renderAllTasks();
                 }
             }
         }
 
-        function saveToStorage() {
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks)); showToast(); } 
-            catch (e) { if(e.name === 'QuotaExceededError') alert("儲存空間已滿！請刪除一些照片。"); }
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks));
+                const toast = document.getElementById('save-toast');
+                toast.style.opacity = '1';
+                setTimeout(() => toast.style.opacity = '0', 1500);
+            } catch (e) { alert("儲存空間已滿，請刪除部分圖片！"); }
         }
 
-        function loadTasksFromStorage() {
-            let data = localStorage.getItem(STORAGE_KEY);
-            if (!data) { const oldData = localStorage.getItem('eisenhower_matrix_data_v2_split'); if (oldData) data = oldData; }
+        function loadTasks() {
+            const data = localStorage.getItem(STORAGE_KEY);
             if (data) {
                 allTasks = JSON.parse(data);
-                allTasks.forEach(task => {
-                    if (!task.category) task.category = 'work';
-                    if (!task.images) task.images = []; 
-                    if (!task.logs) task.logs = [];
-                    // 遷移舊日誌資料：確保都有 completed 屬性
-                    task.logs.forEach(log => {
-                        if (log.completed === undefined) log.completed = false;
-                    });
+                // 兼容性檢查
+                allTasks.forEach(t => {
+                    if(!t.logs) t.logs = [];
+                    if(!t.images) t.images = [];
                 });
-                saveToStorage();
+                renderAllTasks();
             }
         }
 
-        function showToast() {
-            const toast = document.getElementById('save-toast');
-            toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; }, 1500);
+        // === 8. 匯出與匯入 ===
+        window.exportData = function() {
+            const dataStr = JSON.stringify(allTasks);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = `eisenhower_backup_${new Date().toISOString().slice(0,10)}.json`;
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        window.importData = function(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (Array.isArray(json)) {
+                        if(confirm("這將覆蓋目前的任務資料，確定嗎？")) {
+                            allTasks = json;
+                            saveData();
+                            renderAllTasks();
+                            alert("匯入成功！");
+                        }
+                    } else { alert("檔案格式錯誤"); }
+                } catch (err) { alert("無法讀取檔案"); }
+            };
+            reader.readAsText(file);
+            input.value = '';
         }
     </script>
 </body>
