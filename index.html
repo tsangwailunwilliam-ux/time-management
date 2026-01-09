@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四象限管理系統 (圖文整合版)</title>
+    <title>四象限管理系統 (燈箱預覽版)</title>
     <style>
         /* * =========================================
          * 1. 核心樣式變數
@@ -110,7 +110,7 @@
         .task-card.has-content .icon-indicator { opacity: 1; }
         
         /* * =========================================
-         * 4. Modal 與 圖片樣式 (New!)
+         * 4. Modal 與 圖片樣式
          * =========================================
          */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center; }
@@ -122,25 +122,17 @@
         .modal-header h2 { margin: 0; font-size: 1.3rem; color: #333; }
         .modal-info { font-size: 13px; color: #888; margin-top: 5px; }
 
-        /* 滾動區域容器 */
-        .modal-scroll-body {
-            flex-grow: 1; overflow-y: auto; padding: 20px 25px;
-            display: flex; flex-direction: column; gap: 20px;
-        }
+        .modal-scroll-body { flex-grow: 1; overflow-y: auto; padding: 20px 25px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 圖片區域樣式 */
         .section-title { font-size: 14px; color: #868e96; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
         
-        .image-gallery {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;
-        }
+        .image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
         
         .image-item {
-            position: relative; width: 100%; aspect-ratio: 1/1; /* 正方形縮圖 */
+            position: relative; width: 100%; aspect-ratio: 1/1; 
             border-radius: 8px; overflow: hidden; border: 1px solid #dee2e6;
             cursor: pointer;
         }
-        
         .image-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
         .image-item:hover img { transform: scale(1.1); }
         
@@ -149,7 +141,7 @@
             background: rgba(0,0,0,0.6); color: white; border: none;
             width: 24px; height: 24px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s;
+            cursor: pointer; font-size: 14px; opacity: 0; transition: opacity 0.2s; z-index: 2;
         }
         .image-item:hover .image-delete-btn { opacity: 1; }
         .image-delete-btn:hover { background: var(--danger-color); }
@@ -161,7 +153,7 @@
         }
         .upload-btn-label:hover { background: #dee2e6; }
 
-        /* Log 樣式 */
+        /* Logs & Footer */
         .logs-container { min-height: 100px; }
         .empty-state { text-align: center; color: #adb5bd; margin-top: 20px; font-size: 14px; font-style: italic; }
         .log-item { display: flex; gap: 10px; margin-bottom: 15px; }
@@ -172,7 +164,6 @@
         .delete-log-btn { color: #adb5bd; cursor: pointer; font-size: 12px; border: none; background: none; }
         .delete-log-btn:hover { color: var(--danger-color); text-decoration: underline; }
 
-        /* Modal Footer */
         .modal-footer { padding: 15px 25px; border-top: 1px solid #eee; background: white; border-radius: 0 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
         .new-log-input-wrapper { display: flex; gap: 10px; }
         input.detail-input { flex-grow: 1; padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 15px; }
@@ -186,6 +177,31 @@
             background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px;
             font-size: 14px; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 2000;
         }
+
+        /* * =========================================
+         * 5. Lightbox (圖片預覽) - NEW Feature
+         * =========================================
+         */
+        .lightbox-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); z-index: 3000; /* 比 Modal 更高 */
+            justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .lightbox-overlay.active { display: flex; opacity: 1; }
+        
+        .lightbox-img {
+            max-width: 90%; max-height: 90%; 
+            border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: scale(0.9); transition: transform 0.3s ease;
+        }
+        .lightbox-overlay.active .lightbox-img { transform: scale(1); }
+
+        .lightbox-close {
+            position: absolute; top: 20px; right: 20px;
+            color: white; font-size: 30px; cursor: pointer; opacity: 0.8;
+        }
+        .lightbox-close:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -224,19 +240,14 @@
             </div>
 
             <div class="modal-scroll-body">
-                
                 <div>
                     <div class="section-title">
                         <span>📷 圖片附件</span>
-                        <label for="image-upload" class="upload-btn-label">
-                            ＋ 新增照片
-                        </label>
+                        <label for="image-upload" class="upload-btn-label">＋ 新增照片</label>
                         <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
                     </div>
-                    <div class="image-gallery" id="image-gallery">
-                        </div>
+                    <div class="image-gallery" id="image-gallery"></div>
                 </div>
-
                 <div>
                     <div class="section-title">📝 進度日誌</div>
                     <div class="logs-container" id="logs-list"></div>
@@ -255,13 +266,18 @@
         </div>
     </div>
 
+    <div id="lightbox-overlay" class="lightbox-overlay" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" class="lightbox-img" src="" alt="Full size preview">
+    </div>
+
     <div id="save-toast" class="toast">已自動儲存</div>
 
     <script>
         // === 全域變數 ===
         let allTasks = []; 
         let currentView = 'work'; 
-        const STORAGE_KEY = 'eisenhower_matrix_v7_images'; // 更新 Key 以區隔版本
+        const STORAGE_KEY = 'eisenhower_matrix_v7_images'; 
 
         // DOM Elements
         const taskInput = document.getElementById('task-input');
@@ -272,6 +288,8 @@
         const newLogInput = document.getElementById('new-log-input');
         const inputGroupContainer = document.getElementById('input-group-container');
         const imageGallery = document.getElementById('image-gallery');
+        const lightboxOverlay = document.getElementById('lightbox-overlay');
+        const lightboxImg = document.getElementById('lightbox-img');
         
         let currentEditingTaskId = null;
 
@@ -321,7 +339,7 @@
                 completed: false,
                 createdTime: new Date().toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
                 logs: [],
-                images: [] // 新增圖片陣列
+                images: []
             };
 
             allTasks.push(newTask);
@@ -345,14 +363,12 @@
 
         function renderTaskElement(task) {
             const card = document.createElement('div');
-            // 檢查是否有圖或文
             const hasContent = (task.logs && task.logs.length > 0) || (task.images && task.images.length > 0);
             
             card.className = `task-card ${task.completed ? 'completed' : ''} ${hasContent ? 'has-content' : ''}`;
             card.draggable = true;
             card.id = task.id;
 
-            // 統計數量
             const logCount = task.logs ? task.logs.length : 0;
             const imgCount = task.images ? task.images.length : 0;
             const metaText = [];
@@ -406,45 +422,32 @@
             if (!task) return;
             document.getElementById('modal-title').innerText = task.text;
             document.getElementById('modal-created-time').innerText = "建立於: " + task.createdTime;
-            
-            // 初始化 images 陣列 (針對舊資料)
             if (!task.images) task.images = [];
-            
             renderLogs(task.logs);
             renderImages(task.images);
-            
             modal.classList.add('active');
         }
 
-        // === 圖片處理邏輯 (New!) ===
-        
-        // 1. 處理上傳
+        // === 圖片處理邏輯 ===
         function handleImageUpload(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
-                
-                // 簡單檢查大小 (雖然我們會壓縮，但太大的圖可能導致瀏覽器當機)
                 if (file.size > 10 * 1024 * 1024) {
                     alert("圖片太大囉，請選擇小於 10MB 的圖片");
                     return;
                 }
-
-                // 壓縮並讀取
                 compressImage(file, (base64String) => {
                     const task = allTasks.find(t => t.id === currentEditingTaskId);
                     if (task) {
                         task.images.push(base64String);
-                        renderImages(task.images); // 更新畫面
-                        saveToStorage(); // 存檔
+                        renderImages(task.images); 
+                        saveToStorage();
                     }
                 });
-                
-                // 清空 input 讓同一張圖可以再次被選取
                 input.value = '';
             }
         }
 
-        // 2. 圖片壓縮演算法
         function compressImage(file, callback) {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -452,60 +455,57 @@
                 const img = new Image();
                 img.src = event.target.result;
                 img.onload = function() {
-                    // 建立 Canvas
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    
-                    // 設定最大尺寸 (限制在 800px 以內以節省空間)
                     const MAX_WIDTH = 800;
                     const MAX_HEIGHT = 800;
                     let width = img.width;
                     let height = img.height;
 
                     if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                     } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
                     }
-
-                    canvas.width = width;
-                    canvas.height = height;
+                    canvas.width = width; canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
-
-                    // 輸出為 JPEG, 品質 0.7
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                    callback(dataUrl);
+                    callback(canvas.toDataURL('image/jpeg', 0.7));
                 }
             }
         }
 
-        // 3. 渲染圖片
+        // === Lightbox 預覽功能 (New!) ===
         function renderImages(images) {
             imageGallery.innerHTML = '';
-            if (!images || images.length === 0) {
-                // 不顯示任何東西，保持乾淨
-                return;
-            }
+            if (!images || images.length === 0) return;
 
             images.forEach((imgSrc, index) => {
                 const div = document.createElement('div');
                 div.className = 'image-item';
+                // 修改：使用 openLightbox 而不是 window.open
                 div.innerHTML = `
-                    <img src="${imgSrc}" onclick="window.open('${imgSrc}')" title="點擊放大">
-                    <button class="image-delete-btn" onclick="deleteImage(${index})">✕</button>
+                    <img src="${imgSrc}" onclick="openLightbox('${imgSrc}')" title="點擊預覽">
+                    <button class="image-delete-btn" onclick="deleteImage(event, ${index})">✕</button>
                 `;
                 imageGallery.appendChild(div);
             });
         }
 
-        // 4. 刪除圖片
-        window.deleteImage = function(index) {
+        // 打開燈箱
+        window.openLightbox = function(src) {
+            lightboxImg.src = src;
+            lightboxOverlay.classList.add('active');
+        }
+
+        // 關閉燈箱
+        window.closeLightbox = function() {
+            lightboxOverlay.classList.remove('active');
+            // 清空 src 以節省記憶體，並防止下次打開時閃爍舊圖
+            setTimeout(() => { lightboxImg.src = ''; }, 300); 
+        }
+
+        window.deleteImage = function(event, index) {
+            event.stopPropagation(); // 防止點到圖片觸發預覽
             if(!confirm("確定要刪除這張照片嗎？")) return;
             const task = allTasks.find(t => t.id === currentEditingTaskId);
             if (task) {
@@ -562,14 +562,7 @@
 
         function saveAndCloseModal() {
             const task = allTasks.find(t => t.id === currentEditingTaskId);
-            if (task) {
-                // 更新卡片上的 UI (顯示有幾張圖、幾條紀錄)
-                const card = document.getElementById(task.id);
-                if (card) {
-                    // 我們需要重新渲染整個卡片 meta 來更新圖示
-                    renderAllTasks(); 
-                }
-            }
+            if (task) renderAllTasks(); 
             modal.classList.remove('active');
             currentEditingTaskId = null;
         }
@@ -612,17 +605,15 @@
 
         function loadTasksFromStorage() {
             let data = localStorage.getItem(STORAGE_KEY);
-            // 遷移舊資料 (V2 -> V7)
             if (!data) {
                 const oldData = localStorage.getItem('eisenhower_matrix_data_v2_split');
                 if (oldData) data = oldData;
             }
-
             if (data) {
                 allTasks = JSON.parse(data);
                 allTasks.forEach(task => {
                     if (!task.category) task.category = 'work';
-                    if (!task.images) task.images = []; // 確保有圖片陣列
+                    if (!task.images) task.images = []; 
                 });
                 saveToStorage();
             }
